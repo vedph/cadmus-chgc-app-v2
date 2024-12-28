@@ -1,0 +1,64 @@
+<form [formGroup]="form" (submit)="save()">
+  <div class="form-row">
+    <!-- eid -->
+    <fieldset>
+      <legend>ID</legend>
+      <cadmus-ref-lookup
+        [item]="eid.value"
+        [service]="idLookupService"
+        [required]="true"
+        [options]="{ entries: idEntries }"
+        label="ID"
+        (itemChange)="onItemChange($event)"
+      />
+      <mat-error
+        *ngIf="$any(eid).errors?.required && (eid.dirty || eid.touched)"
+        >ID required</mat-error
+      >
+    </fieldset>
+
+    <!-- label -->
+    <div>
+      <mat-form-field>
+        <mat-label>label</mat-label>
+        <input matInput [formControl]="label" />
+        <mat-error
+          *ngIf="
+            $any(label).errors?.maxLength && (label.dirty || label.touched)
+          "
+          >label too long</mat-error
+        >
+      </mat-form-field>
+    </div>
+  </div>
+
+  <!-- note -->
+  <div>
+    <mat-form-field class="long-text">
+      <mat-label>note</mat-label>
+      <textarea matInput [formControl]="note"></textarea>
+      <mat-error
+        *ngIf="$any(note).errors?.maxLength && (note.dirty || note.touched)"
+        >note too long</mat-error
+      >
+    </mat-form-field>
+  </div>
+  <div class="center-content">
+    <button
+      type="button"
+      mat-icon-button
+      matTooltip="Discard changes"
+      (click)="close()"
+    >
+      <mat-icon class="mat-warn">clear</mat-icon>
+    </button>
+    <button
+      type="submit"
+      mat-icon-button
+      matTooltip="Accept changes"
+      [disabled]="form.invalid || form.pristine"
+    >
+      <mat-icon class="mat-primary">check_circle</mat-icon>
+    </button>
+  </div>
+</form>

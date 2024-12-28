@@ -1,0 +1,25 @@
+fieldset {
+  border: 1px solid silver;
+  border-radius: 4px;
+  padding: 6px;
+  margin-bottom: 12px;
+}
+legend {
+  color: silver;
+}
+/* row of elements */
+.form-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.form-row * {
+  flex: 0 0 auto;
+}
+#xml {
+  height: 800px;
+}
+ngx-monaco-editor {
+  height: 100%;
+}

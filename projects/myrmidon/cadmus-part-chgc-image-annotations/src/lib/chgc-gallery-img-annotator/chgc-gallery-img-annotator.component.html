@@ -1,0 +1,42 @@
+<mat-progress-bar *ngIf="loading" mode="indeterminate" />
+<mat-tab-group [(selectedIndex)]="tabIndex">
+  <mat-tab label="Annotator">
+    <div id="container">
+      <div id="image" *ngIf="image">
+        <div>
+          <img-annotator-toolbar (toolChange)="onToolChange($event)" />
+        </div>
+        <div>
+          <img
+            alt="image"
+            imgAnnotator
+            (createAnnotation)="onCreateAnnotation($event)"
+            (deleteAnnotation)="onDeleteAnnotation($event)"
+            (clickAnnotation)="onClickAnnotation($event)"
+            (selectionChanged)="onSelectionChanged($event)"
+            (annotatorInit)="onAnnotatorInit($event)"
+            (load)="onImageLoad()"
+            [annotations]="imageAnnotations"
+            [tool]="tool"
+            [src]="image!.uri"
+          />
+        </div>
+      </div>
+      <div id="list">
+        <cadmus-chgc-img-annotation-list
+          [annotator]="annotator"
+          [editorComponent]="editorComponent"
+          [annotationToString]="annotationToString"
+          [image]="image!"
+          (listInit)="onListInit($event)"
+        />
+      </div>
+    </div>
+  </mat-tab>
+  <mat-tab label="Gallery">
+    <cadmus-gallery-list
+      [entries]="entries"
+      (imagePick)="onImagePick($event)"
+    />
+  </mat-tab>
+</mat-tab-group>

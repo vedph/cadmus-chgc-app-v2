@@ -1,0 +1,83 @@
+<div>
+  <div class="banner">
+    <img
+      alt="logo"
+      class="banner-img"
+      srcset="./img/banner-1024.jpg 1024w, ./img/banner-512.jpg 512w"
+      sizes="(max-width: 600px) 512px, 1024px"
+    />
+  </div>
+  <article>
+    <h2>Cadmus CHGC</h2>
+    <p>
+      Welcome to the CHGC project data editor. Access to this site is restricted
+      to authorised users.
+    </p>
+    <p *ngIf="!logged" class="emph">
+      Please <a href="/login">login</a> to start.
+    </p>
+    <h3>Composable Data and Composable Editor</h3>
+    <p>
+      The purpose of this editor is just annotating images; so its data
+      architecture is minimalist, and the only entity type is an image. Each
+      image corresponds to a page, and is provided by an IIIF server. Imagine
+      each of these entities as a box: this is a Cadmus "item". You can put any
+      type and number of objects ("parts") inside it. Each object is modeled to
+      encode a group of coherent features; many of these objects together put in
+      the same box build up an aggregated super-model. Also, each of these
+      objects has its own editor UI. So, the editor itself is built by
+      aggregation, too.
+    </p>
+    <p>
+      Also, even though this is not the case for this project, objects in the
+      text box may represent <em>layers</em> on top of the base text: each layer
+      is specialized in representing a specific type of textual annotations,
+      like critical apparatus, comment, orthography, links, etc. To add such
+      annotations, you just select the portion of text to annotate, and click
+      the edit button to get to the corresponding layer editor.
+    </p>
+    <p>
+      So, in this architecture there is no limit to the expansion of the models:
+      adding new models the the existing data is as simple as tossing a new
+      object into any of the boxes. Also, there is no overlap, as different
+      annotation types are laid on top of separate layers. Finally, you are not
+      forced to design your models as constrained by any specific serialization
+      scheme to comply with, like TEI. Just design it freely, and then you will
+      always be able to generate TEI output by mapping structured data into
+      documents.
+    </p>
+    <p>
+      In the case of this editor, you just have image items corresponding to
+      manuscript pages, and the only part you are going to use is the
+      annotations part. This includes geometrical regions drawn on top of the
+      image, and provided with a minimal set of metadata.
+    </p>
+    <p>
+      Once logged in, open the items list, add an item for a page and enter its
+      essential metadata, like title and description. Saving it will create a
+      "box".
+    </p>
+    <p>
+      In that box, add a new part, the image annotations part. Pick an image
+      from the gallery, and draw on top of it, while editing metadata for each
+      annotation. When you are done, save the part. You can edit any part of any
+      item at any time.
+    </p>
+    <p>
+      The top menu allows you to search data (fully validated and indexed
+      whenever you save them) and browse and edit the various taxonomies
+      (<em>Thesauri</em>) provided for part editors. Also, you can use the
+      <em>options</em> menu to change the IIIF image source, which is always
+      displayed at the top of the page.
+    </p>
+    <p>
+      For more information, please see the
+      <a
+        href="https://myrmex.github.io/overview/cadmus"
+        target="_blank"
+        rel="noopener"
+        >Cadmus web page</a
+      >.
+    </p>
+  </article>
+</div>

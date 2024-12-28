@@ -1,0 +1,67 @@
+<mat-card>
+  <mat-card-header>
+    <mat-card-title>Import TEI</mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    <mat-progress-bar mode="indeterminate" *ngIf="busy"></mat-progress-bar>
+    <div id="result" *ngIf="addedCount">Imported items: {{ addedCount }}.</div>
+    <fieldset>
+      <form [formGroup]="form" (submit)="import()">
+        <div class="form-row">
+          <!-- group ID-->
+          <mat-form-field>
+            <mat-label>group ID</mat-label>
+            <input matInput [formControl]="groupId" />
+            <mat-error
+              *ngIf="
+                $any(groupId).errors?.required &&
+                (groupId.dirty || groupId.touched)
+              "
+              >group ID required</mat-error
+            >
+            <mat-error
+              *ngIf="
+                $any(groupId).errors?.maxLength &&
+                (groupId.dirty || groupId.touched)
+              "
+              >group ID too long</mat-error
+            >
+          </mat-form-field>
+          <!-- button -->
+          <button
+            type="submit"
+            mat-flat-button
+            class="mat-primary"
+            [disabled]="form.invalid"
+          >
+            import
+          </button>
+        </div>
+
+        <!-- shortener -->
+        <div>
+          <mat-form-field class="long-text">
+            <mat-label>URI shortener</mat-label>
+            <textarea matInput [formControl]="shortener" rows="3"></textarea>
+            <mat-hint>rep dsc URI with $1</mat-hint>
+            <mat-error
+              *ngIf="
+                $any(shortener).errors?.maxLength &&
+                (shortener.dirty || shortener.touched)
+              "
+              >shortener too long</mat-error
+            >
+          </mat-form-field>
+        </div>
+
+        <!-- text -->
+        <div id="xml">
+          <nge-monaco-editor
+            style="--editor-height: 600px"
+            (ready)="onCreateEditor($event)"
+          />
+        </div>
+      </form>
+    </fieldset>
+  </mat-card-content>
+</mat-card>

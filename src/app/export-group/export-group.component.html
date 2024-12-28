@@ -1,0 +1,45 @@
+<mat-card>
+  <mat-card-header>
+    <mat-card-title>Export TEI</mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    <mat-progress-bar mode="indeterminate" *ngIf="busy"></mat-progress-bar>
+    <fieldset>
+      <form [formGroup]="form" (submit)="export()">
+        <legend>group</legend>
+        <div class="form-row">
+          <cadmus-ref-lookup
+            [service]="lookupService"
+            [item]="groupId.value"
+            [required]="true"
+            label="group"
+            (itemChange)="onGroupChange($event)"
+          />
+
+          <button
+            type="submit"
+            mat-flat-button
+            class="mat-primary"
+            [disabled]="form.invalid"
+          >
+            export
+          </button>
+          <button
+            type="button"
+            mat-flat-button
+            [disabled]="busy || !xml.value"
+            (click)="save()"
+          >
+            save
+          </button>
+        </div>
+      </form>
+    </fieldset>
+    <div id="xml">
+      <nge-monaco-editor
+        style="--editor-height: 600px"
+        (ready)="onCreateEditor($event)"
+      />
+    </div>
+  </mat-card-content>
+</mat-card>

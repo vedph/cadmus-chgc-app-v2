@@ -1,59 +1,51 @@
-# CadmusChgcApp
+# Cadmus CHGC App V2
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.0.5.
+This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.0.5. This V2 repository is derived from the original, production [V1 CHGC app repository](https://github.com/vedph/cadmus-chgc-app) by replacing Annotorious V2 with V3 using [ngx-annotorious](https://github.com/vedph/ngx-annotorious). As such this is the first experimental Cadmus solution based on this new brick.
 
-## Development server
+- [API](https://github.com/vedph/cadmus-chgc-api)
 
-To start a local development server, run:
+## Docker
 
-```bash
-ng serve
+🐋 Quick **Docker image** build:
+
+1. `npm run build-lib`;
+2. update version in `env.js` and then `ng build`;
+3. `docker build . -t vedph2020/cadmus-chgc-app:2.0.7 -t vedph2020/cadmus-chgc-app:latest` (replace with the current version).
+
+## IIIF
+
+- reference website: <https://parker.stanford.edu/parker/catalog/xj710dc7305>
+- manifest: <https://dms-data.stanford.edu/data/manifests/Parker/xj710dc7305/manifest.json>
+
+Paths in manifest:
+
+- list: `sequences[0]/canvases`
+- resource: `images[0]/resource` with properties:
+  - `@id` = URI, e.g. <https://stacks.stanford.edu/image/iiif/xj710dc7305/029_fob_TC_46/full/full/0/default.jpg>
+  - `height`
+  - `width`
+- label: `label`
+
+Quick reference for [IIIF pattern](https://iiif.io/api/image/3.0/#image-request-uri-syntax):
+
+```txt
+{baseURL}/{identifier}/{region}/{size}/{rotation}/{quality}.{format}
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+- baseURL: The URL of the IIIF image server
+- identifier: The identifier of the image resource
+- region: The region of the full image that should be returned
+- size: The size of the returned image
+- rotation: The rotation applied to the returned image
+- quality: The quality of the returned image
+- format: The format of the returned image
 
-## Code scaffolding
+>As an alternatie source you can use a Naples image (version `0.0.2-na`): <https://www.dante.unina.it/images/ms/CNMD0000263308/manifest.json>.
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+## History
 
-```bash
-ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
-
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+- 2024-12-28: ⚠️ V2 repository, starting from app version 4:
+  - upgraded Angular and packages.
+  - refactored to standalone.
+  - replaced Annotorious V2 with V3 via [ngx-annotorious](https://github.com/vedph/ngx-annotorious).
+- [V1 history](https://github.com/vedph/cadmus-chgc-app#history)

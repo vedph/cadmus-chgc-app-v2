@@ -1,0 +1,25 @@
+<form [formGroup]="form" (submit)="save()">
+  <mat-card>
+    <mat-card-header>
+      <div mat-card-avatar>
+        <mat-icon>picture_in_picture</mat-icon>
+      </div>
+      <mat-card-title>CHGC Image Annotations Part</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <cadmus-chgc-gallery-img-annotator
+        [image]="image"
+        [annotations]="annotations.value"
+        (annotationsChange)="onAnnotationsChange($event)"
+        (imageChange)="onImageChange($event)"
+      />
+    </mat-card-content>
+  </mat-card>
+  <mat-card-actions>
+    <cadmus-close-save-buttons
+      [form]="form"
+      [noSave]="userLevel < 2"
+      (closeRequest)="close()"
+    />
+  </mat-card-actions>
+</form>
