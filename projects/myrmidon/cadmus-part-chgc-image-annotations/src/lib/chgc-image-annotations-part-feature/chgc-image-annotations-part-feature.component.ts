@@ -4,7 +4,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 
 import { EditPartFeatureBase, PartEditorService } from '@myrmidon/cadmus-state';
 import { ItemService, ThesaurusService } from '@myrmidon/cadmus-api';
-import { CadmusUiPgModule } from '@myrmidon/cadmus-ui-pg';
+import { CurrentItemBarComponent } from '@myrmidon/cadmus-ui-pg';
 
 import { ChgcImageAnnotationsPartComponent } from '../chgc-image-annotations-part/chgc-image-annotations-part.component';
 
@@ -12,7 +12,7 @@ import { ChgcImageAnnotationsPartComponent } from '../chgc-image-annotations-par
   selector: 'cadmus-chgc-image-annotations-part-feature',
   templateUrl: './chgc-image-annotations-part-feature.component.html',
   styleUrls: ['./chgc-image-annotations-part-feature.component.css'],
-  imports: [CadmusUiPgModule, ChgcImageAnnotationsPartComponent],
+  imports: [CurrentItemBarComponent, ChgcImageAnnotationsPartComponent],
 })
 export class ChgcImageAnnotationsPartFeatureComponent
   extends EditPartFeatureBase

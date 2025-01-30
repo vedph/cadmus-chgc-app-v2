@@ -3,10 +3,7 @@ import { NgModule } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 
-import { CadmusCoreModule, PendingChangesGuard } from '@myrmidon/cadmus-core';
-import { CadmusStateModule } from '@myrmidon/cadmus-state';
-import { CadmusUiModule } from '@myrmidon/cadmus-ui';
-import { CadmusUiPgModule } from '@myrmidon/cadmus-ui-pg';
+import { PendingChangesGuard } from '@myrmidon/cadmus-core';
 
 import {
   CHGC_IMAGE_ANNOTATIONS_PART_TYPEID,
@@ -31,10 +28,6 @@ export const RouterModuleForChild = RouterModule.forChild([
     ReactiveFormsModule,
     // Cadmus
     RouterModuleForChild,
-    CadmusCoreModule,
-    CadmusStateModule,
-    CadmusUiModule,
-    CadmusUiPgModule,
   ],
   exports: [],
 })

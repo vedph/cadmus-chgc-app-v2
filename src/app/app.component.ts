@@ -22,7 +22,7 @@ import { Thesaurus, ThesaurusEntry } from '@myrmidon/cadmus-core';
 import { AppRepository } from '@myrmidon/cadmus-state';
 
 import { ChgcGalleryOptions } from './gallery-options/gallery-options.component';
-import '@angular/localize/init';
+//import '@angular/localize/init';
 
 @Component({
   selector: 'app-root',

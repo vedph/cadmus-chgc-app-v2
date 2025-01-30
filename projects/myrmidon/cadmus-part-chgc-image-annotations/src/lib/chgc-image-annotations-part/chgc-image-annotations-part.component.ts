@@ -27,9 +27,9 @@ import {
 } from '@myrmidon/ngx-annotorious';
 
 import {
+  CloseSaveButtonsComponent,
   EditedObject,
   ModelEditorComponentBase,
-  CadmusUiModule,
 } from '@myrmidon/cadmus-ui';
 import { ThesauriSet, ThesaurusEntry } from '@myrmidon/cadmus-core';
 
@@ -60,7 +60,7 @@ import { ChgcGalleryImgAnnotatorComponent } from '../chgc-gallery-img-annotator/
     MatCardContent,
     ChgcGalleryImgAnnotatorComponent,
     MatCardActions,
-    CadmusUiModule,
+    CloseSaveButtonsComponent,
   ],
 })
 export class ChgcImageAnnotationsPartComponent

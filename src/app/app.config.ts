@@ -1,9 +1,16 @@
-import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
-import { provideRouter } from '@angular/router';
+import {
+  ApplicationConfig,
+  importProvidersFrom,
+  provideZoneChangeDetection,
+} from '@angular/core';
+import { provideRouter, withViewTransitions } from '@angular/router';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 
 import { MAT_DIALOG_DEFAULT_OPTIONS } from '@angular/material/dialog';
+import { provideNativeDateAdapter } from '@angular/material/core';
+
+import { NgeMonacoModule } from '@cisstech/nge/monaco';
 
 import { authJwtInterceptor } from '@myrmidon/auth-jwt-login';
 
@@ -33,9 +40,11 @@ import { TxtEmojiCtePlugin } from '@myrmidon/cadmus-text-ed-txt';
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
-    provideRouter(routes),
+    provideRouter(routes, withViewTransitions()),
     provideAnimationsAsync(),
     provideHttpClient(withInterceptors([authJwtInterceptor])),
+    provideNativeDateAdapter(),
+    importProvidersFrom(NgeMonacoModule.forRoot({})),
     // dialog default
     {
       provide: MAT_DIALOG_DEFAULT_OPTIONS,

@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, effect, model, OnInit, output } from '@angular/core';
 import { ThesaurusEntry } from '@myrmidon/cadmus-core';
 import {
   FormBuilder,
@@ -46,33 +46,12 @@ import { IdLookupService } from './id-lookup.service';
   ],
 })
 export class ChgcImageAnnotationComponent implements OnInit {
-  private _annotation: ListAnnotation<ChgcAnnotationPayload> | undefined;
-
   /**
    * The annotation to edit.
    */
-  @Input()
-  public get annotation():
-    | ListAnnotation<ChgcAnnotationPayload>
-    | undefined
-    | null {
-    return this._annotation;
-  }
-  public set annotation(
-    value: ListAnnotation<ChgcAnnotationPayload> | undefined | null
-  ) {
-    if (this._annotation === value) {
-      return;
-    }
-    this._annotation = value || undefined;
-    this.updateForm(this._annotation);
-  }
+  public readonly annotation = model<ListAnnotation<ChgcAnnotationPayload>>();
 
-  @Output()
-  public cancel: EventEmitter<void>;
-
-  @Output()
-  public annotationChange: EventEmitter<ListAnnotation<ChgcAnnotationPayload>>;
+  public readonly cancel = output();
 
   // chgc-ids
   public idEntries: ThesaurusEntry[] | undefined;
@@ -96,11 +75,10 @@ export class ChgcImageAnnotationComponent implements OnInit {
       label: this.label,
       note: this.note,
     });
-    // events
-    this.annotationChange = new EventEmitter<
-      ListAnnotation<ChgcAnnotationPayload>
-    >();
-    this.cancel = new EventEmitter<void>();
+
+    effect(() => {
+      this.updateForm(this.annotation());
+    });
   }
 
   public ngOnInit(): void {
@@ -116,19 +94,21 @@ export class ChgcImageAnnotationComponent implements OnInit {
       this.form.reset();
       return;
     }
-    // in CHGC id is always equal to value
-    this.eid.setValue({
-      id: annotation.payload!.eid,
-      value: annotation.payload!.eid,
-    });
     this.label.setValue(annotation.payload.label || null);
     this.note.setValue(annotation.payload.note || null);
-    this.form.markAsPristine();
+    setTimeout(() => {
+      // in CHGC id is always equal to value
+      this.eid.setValue({
+        id: annotation.payload!.eid,
+        value: annotation.payload!.eid,
+      });
+      this.form.markAsPristine();
+    });
   }
 
-  private getModel(): ListAnnotation<ChgcAnnotationPayload> {
+  private getAnnotation(): ListAnnotation<ChgcAnnotationPayload> {
     return {
-      ...this._annotation!,
+      ...this.annotation()!,
       payload: {
         eid: this.eid.value?.id || '',
         label: this.label.value || undefined,
@@ -151,7 +131,6 @@ export class ChgcImageAnnotationComponent implements OnInit {
     if (!this.form.valid) {
       return;
     }
-    this._annotation = this.getModel();
-    this.annotationChange.emit(this._annotation);
+    this.annotation.set(this.getAnnotation());
   }
 }

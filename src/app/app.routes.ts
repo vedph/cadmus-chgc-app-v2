@@ -40,9 +40,9 @@ export const routes: Routes = [
   },
   {
     path: 'demo/layers',
-    loadChildren: () =>
+    loadComponent: () =>
       import('@myrmidon/cadmus-layer-demo').then(
-        (module) => module.CadmusLayerDemoModule
+        (module) => module.LayerDemoComponent
       ),
   },
   // chgc
@@ -71,53 +71,54 @@ export const routes: Routes = [
   // cadmus - items
   {
     path: 'items/:id',
-    loadChildren: () =>
+    loadComponent: () =>
       import('@myrmidon/cadmus-item-editor').then(
-        (module) => module.CadmusItemEditorModule
+        (module) => module.ItemEditorComponent
       ),
     canActivate: [AuthJwtGuardService],
     canDeactivate: [PendingChangesGuard],
   },
   {
     path: 'items',
-    loadChildren: () =>
+    loadComponent: () =>
       import('@myrmidon/cadmus-item-list').then(
-        (module) => module.CadmusItemListModule
+        (module) => module.ItemListComponent
       ),
     canActivate: [AuthJwtGuardService],
   },
   {
     path: 'search',
-    loadChildren: () =>
+    loadComponent: () =>
       import('@myrmidon/cadmus-item-search').then(
-        (module) => module.CadmusItemSearchModule
+        (module) => module.ItemSearchComponent
       ),
     canActivate: [AuthJwtGuardService],
   },
   // cadmus - thesauri
   {
     path: 'thesauri/:id',
-    loadChildren: () =>
+    loadComponent: () =>
       import('@myrmidon/cadmus-thesaurus-editor').then(
-        (module) => module.CadmusThesaurusEditorModule
+        (module) => module.ThesaurusEditorFeatureComponent
       ),
     canActivate: [EditorGuardService],
   },
   {
     path: 'thesauri',
-    loadChildren: () =>
+    loadComponent: () =>
       import('@myrmidon/cadmus-thesaurus-list').then(
-        (module) => module.CadmusThesaurusListModule
+        (module) => module.ThesaurusListComponent
       ),
     canActivate: [EditorGuardService],
   },
   // cadmus - flags
   {
     path: 'flags',
-    loadChildren: () =>
+    loadComponent: () =>
       import('@myrmidon/cadmus-flags-pg').then(
-        (module) => module.CadmusFlagsPgModule
+        (module) => module.FlagsEditorFeatureComponent
       ),
+    canActivate: [AuthJwtGuardService],
   },
   // cadmus - parts
   {
@@ -147,9 +148,9 @@ export const routes: Routes = [
   // cadmus - graph
   {
     path: 'graph',
-    loadChildren: () =>
-      import('@myrmidon/cadmus-graph-pg').then(
-        (module) => module.CadmusGraphPgModule
+    loadComponent: () =>
+      import('@myrmidon/cadmus-graph-pg-ex').then(
+        (module) => module.GraphEditorExFeatureComponent
       ),
     canActivate: [AuthJwtGuardService],
   },

@@ -1,8 +1,8 @@
-<cadmus-current-item-bar></cadmus-current-item-bar>
+<cadmus-current-item-bar/>
 <cadmus-chgc-image-annotations-part
   [identity]="identity"
   [data]="$any(data)"
-  (dataChange)="save($event)"
+  (dataChange)="save($event!.value!)"
   (editorClose)="close()"
   (dirtyChange)="onDirtyChange($event)"
 />

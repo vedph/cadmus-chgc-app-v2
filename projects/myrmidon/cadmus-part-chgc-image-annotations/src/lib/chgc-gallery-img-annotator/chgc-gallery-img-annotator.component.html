@@ -2,7 +2,7 @@
 <mat-tab-group [(selectedIndex)]="tabIndex">
   <mat-tab label="Annotator">
     <div id="container">
-      <div id="image" *ngIf="image">
+      <div id="image" *ngIf="image()">
         <div>
           <img-annotator-toolbar (toolChange)="onToolChange($event)" />
         </div>
@@ -18,7 +18,7 @@
             (load)="onImageLoad()"
             [annotations]="imageAnnotations"
             [tool]="tool"
-            [src]="image!.uri"
+            [src]="image()!.uri"
           />
         </div>
       </div>
@@ -27,7 +27,7 @@
           [annotator]="annotator"
           [editorComponent]="editorComponent"
           [annotationToString]="annotationToString"
-          [image]="image!"
+          [image]="image()!"
           (listInit)="onListInit($event)"
         />
       </div>
