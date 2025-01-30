@@ -6,7 +6,6 @@ import {
   model,
   OnDestroy,
   OnInit,
-  output,
 } from '@angular/core';
 import { Subscription, take } from 'rxjs';
 
@@ -61,7 +60,6 @@ export class ChgcGalleryImgAnnotatorComponent implements OnInit, OnDestroy {
   private _sub?: Subscription;
   private _list?: ImgAnnotationList<ChgcAnnotationPayload>;
   private _pendingAnnotations?: ListAnnotation<ChgcAnnotationPayload>[];
-  private _dropNextInput?: boolean;
 
   public loading?: boolean;
   public entries: ThesaurusEntry[];
@@ -86,10 +84,6 @@ export class ChgcGalleryImgAnnotatorComponent implements OnInit, OnDestroy {
   public readonly annotations = model<ListAnnotation<ChgcAnnotationPayload>[]>(
     []
   );
-  /**
-   * Emitted when image changes.
-   */
-  public readonly imageChange = output<GalleryImage | undefined>();
 
   public imageAnnotations: ImageAnnotation[] = [];
 
@@ -114,8 +108,8 @@ export class ChgcGalleryImgAnnotatorComponent implements OnInit, OnDestroy {
     ];
 
     effect(() => {
-      console.log('Image changed:', this.image());
-      // this.loading = true;
+      console.log('Annotator: image changed:', this.image());
+      this.loading = true;
       if (this.image()) {
         setTimeout(() => {
           this.tabIndex = 0;
@@ -125,8 +119,7 @@ export class ChgcGalleryImgAnnotatorComponent implements OnInit, OnDestroy {
 
     // when annotations change, update the inner list
     effect(() => {
-      if (this._dropNextInput) {
-        this._dropNextInput = false;
+      if (this._pendingAnnotations) {
         return;
       }
       this.setAnnotations(this.annotations());
@@ -137,17 +130,17 @@ export class ChgcGalleryImgAnnotatorComponent implements OnInit, OnDestroy {
     annotations: ListAnnotation<ChgcAnnotationPayload>[]
   ): void {
     if (!this.loading && this._list) {
-      console.log('Setting annotations:', annotations);
+      console.log('Annotator: setting annotations:', annotations);
       this._list.setAnnotations(annotations);
     } else if (annotations?.length) {
-      console.log('Setting pending annotations:', annotations);
+      console.log('Annotator: setting pending annotations:', annotations);
       this._pendingAnnotations = annotations;
     }
   }
 
   public ngOnInit(): void {
     if (!this.image()) {
-      console.log('No image, setting tabIndex to 1');
+      console.log('Annotator: no image, tabIndex=1');
       this.tabIndex = 1;
     }
   }
@@ -157,17 +150,20 @@ export class ChgcGalleryImgAnnotatorComponent implements OnInit, OnDestroy {
   }
 
   public onImageLoad(): void {
-    console.log('Image loaded');
+    console.log('Annotator: image loaded for model', this.image());
     this.loading = false;
     this.tabIndex = 0;
 
-    setTimeout(() => {
-      if (this._pendingAnnotations?.length) {
-        console.log('Consuming pending annotations:', this._pendingAnnotations);
-        this._list!.setAnnotations(this._pendingAnnotations);
+    if (this._pendingAnnotations?.length) {
+      setTimeout(() => {
+        console.log(
+          'Annotator: consuming pending annotations:',
+          this._pendingAnnotations
+        );
+        this._list!.setAnnotations(this._pendingAnnotations!);
         this._pendingAnnotations = undefined;
-      }
-    });
+      });
+    }
   }
 
   public onToolChange(tool: string): void {
@@ -182,7 +178,7 @@ export class ChgcGalleryImgAnnotatorComponent implements OnInit, OnDestroy {
   }
 
   public onListInit(list: ImgAnnotationList<ChgcAnnotationPayload>) {
-    console.log('List init', list);
+    console.log('Annotator: list init', list);
     this._list = list;
 
     // emit annotations whenever they change
@@ -190,12 +186,11 @@ export class ChgcGalleryImgAnnotatorComponent implements OnInit, OnDestroy {
     this._sub = this._list.annotations$.subscribe((annotations) => {
       if (this.image() && !this.loading) {
         if (this._list) {
-          console.log('List annotations changed:', annotations);
+          console.log('Annotator: list annotations changed:', annotations);
           this.imageAnnotations = this._list
             .getAnnotations()
             .map((a) => a.value);
         }
-        this._dropNextInput = true;
         this.annotations.set(annotations);
       }
     });
@@ -225,7 +220,7 @@ export class ChgcGalleryImgAnnotatorComponent implements OnInit, OnDestroy {
     annotation: ImageAnnotation;
     originalEvent: PointerEvent;
   }) {
-    console.log('Clicked annotation:', event);
+    console.log('Annotator: clicked annotation:', event);
     // this._list?.editAnnotation(event.annotation);
   }
 
@@ -242,7 +237,7 @@ export class ChgcGalleryImgAnnotatorComponent implements OnInit, OnDestroy {
       .getImage(image.id, this._options.get())
       .pipe(take(1))
       .subscribe((image) => {
-        console.log('Image picked:', image);
+        console.log('Annotator: image picked:', image);
         this.image.set(image!);
       });
     this.tabIndex = 1;

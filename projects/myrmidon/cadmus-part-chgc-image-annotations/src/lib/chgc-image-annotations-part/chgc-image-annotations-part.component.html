@@ -9,9 +9,9 @@
     <mat-card-content>
       <cadmus-chgc-gallery-img-annotator
         [image]="image"
+        (imageChange)="onImageChange($event)"
         [annotations]="annotations.value"
         (annotationsChange)="onAnnotationsChange($event)"
-        (imageChange)="onImageChange($event)"
       />
     </mat-card-content>
   </mat-card>

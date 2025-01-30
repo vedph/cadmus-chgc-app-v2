@@ -67,6 +67,8 @@ export class ChgcImageAnnotationsPartComponent
   extends ModelEditorComponentBase<ChgcImageAnnotationsPart>
   implements OnInit
 {
+  private _updating?: boolean;
+
   public tabIndex: number;
 
   // gallery-image-annotation-filters
@@ -76,6 +78,7 @@ export class ChgcImageAnnotationsPartComponent
 
   public image?: GalleryImage;
   public annotations: FormControl<ListAnnotation<ChgcAnnotationPayload>[]>;
+
   public editedIndex: number;
   public editedAnnotation?: ChgcImageAnnotation;
 
@@ -179,14 +182,15 @@ export class ChgcImageAnnotationsPartComponent
       this.form.reset();
       return;
     }
-    this.image = part.image;
 
-    setTimeout(() => {
-      this.annotations.setValue(
-        part.annotations.map((a) => this.chgcToListAnnotation(a)!) || []
-      );
-      this.form.markAsPristine();
-    });
+    this._updating = true;
+    console.log('Annotations part: set data', part);
+    this.annotations.setValue(
+      part.annotations.map((a) => this.chgcToListAnnotation(a)!) || []
+    );
+    this.image = part.image;
+    this.form.markAsPristine();
+    this._updating = false;
   }
 
   protected override onDataSet(
@@ -212,6 +216,10 @@ export class ChgcImageAnnotationsPartComponent
   }
 
   public onImageChange(image?: GalleryImage): void {
+    if (this._updating) {
+      return;
+    }
+    console.log('Annotations part: image change', image);
     this.image = image;
     if (this.image) {
       this.tabIndex = 0;
@@ -221,6 +229,10 @@ export class ChgcImageAnnotationsPartComponent
   public onAnnotationsChange(
     annotations: ListAnnotation<ChgcAnnotationPayload>[]
   ): void {
+    if (this._updating) {
+      return;
+    }
+    console.log('Annotations part: annotations change', annotations);
     this.annotations.setValue(annotations);
     this.annotations.updateValueAndValidity();
     this.annotations.markAsDirty();
