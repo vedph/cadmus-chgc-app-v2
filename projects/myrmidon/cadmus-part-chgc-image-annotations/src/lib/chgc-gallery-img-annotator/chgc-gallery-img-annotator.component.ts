@@ -154,7 +154,7 @@ export class ChgcGalleryImgAnnotatorComponent implements OnInit, OnDestroy {
     this.loading = false;
     this.tabIndex = 0;
 
-    if (this._pendingAnnotations?.length) {
+    if (this._pendingAnnotations?.length && this._list) {
       setTimeout(() => {
         console.log(
           'Annotator: consuming pending annotations:',
@@ -180,6 +180,13 @@ export class ChgcGalleryImgAnnotatorComponent implements OnInit, OnDestroy {
   public onListInit(list: ImgAnnotationList<ChgcAnnotationPayload>) {
     console.log('Annotator: list init', list);
     this._list = list;
+
+    // consume pending annotations if any
+    if (this._pendingAnnotations?.length) {
+      console.log('Annotator: consuming pending annotations:', this._pendingAnnotations);
+      this._list.setAnnotations(this._pendingAnnotations);
+      this._pendingAnnotations = undefined;
+    }
 
     // emit annotations whenever they change
     this._sub?.unsubscribe();
