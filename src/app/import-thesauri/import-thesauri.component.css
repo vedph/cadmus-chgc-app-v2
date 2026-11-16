@@ -1,36 +1,36 @@
-fieldset {
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  margin: 8px 0;
-  padding: 8px;
-}
-legend {
-  color: silver;
-}
 .hidden {
   display: none;
 }
+.mt {
+  margin-top: 12px;
+}
 .file-name {
-  color: royalblue;
-  margin-left: 16px;
+  color: var(--mat-sys-primary);
+  overflow-wrap: anywhere;
+}
+.error-text {
+  color: var(--mat-sys-error);
+  font: var(--mat-sys-body-small);
+}
+.mode {
+  width: 12em;
 }
 .nr-input {
-  width: 6em;
+  width: 7em;
 }
-.form-row {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  flex-wrap: wrap;
+.hint {
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-small);
+  max-width: 60em;
 }
-.form-row * {
-  flex: 0 0 auto;
+.alert {
+  margin: 8px 0;
+  padding: 8px 12px;
+  border-radius: var(--mat-sys-corner-small, 4px);
+  background-color: var(--mat-sys-error-container);
+  color: var(--mat-sys-on-error-container);
 }
-.error {
-  margin: 8px;
-  color: white;
-  padding: 4px 8px;
-  background-color: rgb(251, 57, 57);
-  border: 1px solid rgb(251, 57, 57);
-  border-radius: 6px;
+.ids {
+  columns: 16em;
+  margin: 0;
 }

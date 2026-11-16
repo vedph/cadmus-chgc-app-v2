@@ -1,8 +1,10 @@
-<h1 mat-dialog-title>Edit Annotation</h1>
-<div mat-dialog-content>
+<h2 mat-dialog-title>
+  {{ data.payload?.eid ? 'Edit Annotation' : 'New Annotation' }}
+</h2>
+<mat-dialog-content>
   <cadmus-chgc-image-annotation
     [annotation]="data"
     (cancel)="onCloseClick()"
-    (annotationChange)="onSaveClick($event!)"
+    (annotationChange)="onSaveClick($event)"
   />
-</div>
+</mat-dialog-content>

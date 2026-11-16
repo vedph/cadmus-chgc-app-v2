@@ -8,31 +8,47 @@ import {
 } from '@myrmidon/cadmus-refs-lookup';
 
 /**
- * Lookup service for CHGC image annotation IDs. This just lookups
- * the received array of thesaurus entries, filtering by the text
- * entered by user.
+ * Lookup service for CHGC image annotation IDs. This just looks up
+ * an array of thesaurus entries, matching the text entered by the user
+ * (case-insensitive) in their values. The entries are either set via
+ * `entries`, or received in the `entries` property of the lookup options.
  */
 @Injectable()
 export class IdLookupService implements RefLookupService {
+  public readonly id = 'chgc-ids';
+
+  /**
+   * The entries to look up when no entries are passed via options.
+   */
+  public entries: ThesaurusEntry[] = [];
+
+  private getEntries(options?: any): ThesaurusEntry[] {
+    const entries = options?.entries as ThesaurusEntry[] | undefined;
+    return entries?.length ? entries : this.entries;
+  }
+
   /**
    * Lookup thesaurus entries.
    *
    * @param filter The filter.
-   * @param options The options, which should include an entries array.
+   * @param options The options, which can include an entries array.
    * @returns Matches.
    */
-  lookup(filter: RefLookupFilter, options?: any): Observable<any[]> {
-    const entries = options?.entries as ThesaurusEntry[];
-    if (!filter.text || !entries?.length) {
+  public lookup(
+    filter: RefLookupFilter,
+    options?: any,
+  ): Observable<ThesaurusEntry[]> {
+    const entries = this.getEntries(options);
+    const text = filter.text?.trim().toLowerCase();
+    if (!text || !entries.length) {
       return of([]);
     }
-    // collect all the entries including filter.text
+    const limit = filter.limit > 0 ? filter.limit : entries.length;
     const matches: ThesaurusEntry[] = [];
-    for (let i = 0; i < entries.length; i++) {
-      const entry = entries[i];
-      if (entry.value.includes(filter.text)) {
+    for (const entry of entries) {
+      if (entry.value?.toLowerCase().includes(text)) {
         matches.push(entry);
-        if (matches.length >= filter.limit) {
+        if (matches.length >= limit) {
           break;
         }
       }
@@ -40,7 +56,17 @@ export class IdLookupService implements RefLookupService {
     return of(matches);
   }
 
-  getName(item: ThesaurusEntry): string {
+  /**
+   * Get the entry with the specified ID.
+   *
+   * @param id The entry ID.
+   * @returns The entry, or undefined if not found.
+   */
+  public getById(id: string): Observable<ThesaurusEntry | undefined> {
+    return of(this.entries.find((e) => e.id === id));
+  }
+
+  public getName(item: ThesaurusEntry | undefined): string {
     return item?.value || '';
   }
 }

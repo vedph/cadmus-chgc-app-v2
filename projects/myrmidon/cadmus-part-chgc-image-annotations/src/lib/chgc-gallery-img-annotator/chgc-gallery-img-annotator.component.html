@@ -1,42 +1,99 @@
-<mat-progress-bar *ngIf="loading" mode="indeterminate" />
-<mat-tab-group [(selectedIndex)]="tabIndex">
-  <mat-tab label="Annotator">
-    <div id="container">
-      <div id="image" *ngIf="image()">
-        <div>
-          <img-annotator-toolbar (toolChange)="onToolChange($event)" />
-        </div>
-        <div>
-          <img
-            alt="image"
-            imgAnnotator
-            (createAnnotation)="onCreateAnnotation($event)"
-            (deleteAnnotation)="onDeleteAnnotation($event)"
-            (clickAnnotation)="onClickAnnotation($event)"
-            (selectionChanged)="onSelectionChanged($event)"
-            (annotatorInit)="onAnnotatorInit($event)"
-            (load)="onImageLoad()"
-            [annotations]="imageAnnotations"
-            [tool]="tool"
-            [src]="image()!.uri"
-          />
-        </div>
-      </div>
-      <div id="list">
+<div class="progress">
+  @if (picking() || imageLoading()) {
+    <mat-progress-bar mode="indeterminate" />
+  }
+</div>
+@if (error(); as e) {
+  <div class="alert" role="alert">
+    <mat-icon>error</mat-icon>
+    <span>{{ e }}</span>
+  </div>
+}
+<mat-tab-group
+  mat-stretch-tabs="false"
+  mat-align-tabs="start"
+  [preserveContent]="true"
+  [selectedIndex]="tabIndex()"
+  (selectedIndexChange)="tabIndex.set($event)"
+>
+  <!-- annotator -->
+  <mat-tab>
+    <ng-template mat-tab-label>
+      <mat-icon class="tab-icon">draw</mat-icon>
+      annotator
+    </ng-template>
+    <div class="annotator">
+      <section class="image-pane">
+        @if (image(); as img) {
+          <div class="image-bar">
+            <img-annotator-toolbar [(tool)]="tool" [disabled]="!!disabled()" />
+            <span class="image-title" [title]="img.uri">{{ img.title }}</span>
+            <button
+              type="button"
+              mat-stroked-button
+              [disabled]="!!disabled()"
+              (click)="showGallery()"
+            >
+              <mat-icon>photo_library</mat-icon>
+              change image
+            </button>
+          </div>
+          <div class="image-frame">
+            <img
+              imgAnnotator
+              [src]="img.uri"
+              [alt]="img.title"
+              [tool]="$any(tool())"
+              [drawingEnabled]="!disabled()"
+              (load)="onImageLoad()"
+              (error)="onImageError()"
+            />
+          </div>
+        } @else {
+          <div class="empty-image">
+            <mat-icon class="big-icon">image</mat-icon>
+            <p>No image to annotate.</p>
+            <button
+              type="button"
+              mat-flat-button
+              [disabled]="!!disabled()"
+              (click)="showGallery()"
+            >
+              <mat-icon>photo_library</mat-icon>
+              pick an image
+            </button>
+          </div>
+        }
+      </section>
+      <section class="list-pane" aria-labelledby="chgc-annotations-title">
+        <h3 id="chgc-annotations-title" class="list-title">
+          annotations
+          <span class="count">{{ annotations().length }}</span>
+        </h3>
         <cadmus-chgc-img-annotation-list
-          [annotator]="annotator"
+          [annotator]="annotator()"
           [editorComponent]="editorComponent"
           [annotationToString]="annotationToString"
-          [image]="image()!"
+          [image]="image()"
+          [disabled]="!!disabled()"
           (listInit)="onListInit($event)"
         />
-      </div>
+      </section>
     </div>
   </mat-tab>
-  <mat-tab label="Gallery">
-    <cadmus-gallery-list
-      [entries]="entries"
-      (imagePick)="onImagePick($event)"
-    />
+
+  <!-- gallery -->
+  <mat-tab>
+    <ng-template mat-tab-label>
+      <mat-icon class="tab-icon">photo_library</mat-icon>
+      gallery
+    </ng-template>
+    <div class="gallery">
+      <cadmus-gallery-list
+        [entries]="safeFilterEntries()"
+        [selectedId]="image()?.id"
+        (imagePick)="onImagePick($event)"
+      />
+    </div>
   </mat-tab>
 </mat-tab-group>

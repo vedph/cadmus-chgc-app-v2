@@ -1,51 +1,67 @@
-<mat-card>
+<mat-card appearance="outlined">
   <mat-card-header>
+    <div mat-card-avatar>
+      <mat-icon>photo_library</mat-icon>
+    </div>
     <mat-card-title>Images Source</mat-card-title>
+    <mat-card-subtitle>
+      the IIIF manifest providing the images to annotate
+    </mat-card-subtitle>
   </mat-card-header>
   <mat-card-content>
-    <form [formGroup]="form" (submit)="save()">
-      <div>
-        <mat-form-field>
-          <mat-label>source</mat-label>
-          <mat-select [formControl]="source">
-            <mat-option *ngFor="let e of sources" [value]="e">{{
-              e.id
-            }}</mat-option>
-          </mat-select>
-          <mat-error
-            *ngIf="
-              $any(source).errors?.required && (source.dirty || source.touched)
-            "
-            >source required</mat-error
-          >
-        </mat-form-field>
-      </div>
-      <div *ngIf="source.value" class="form-row">
+    @if (loading()) {
+      <mat-progress-bar mode="indeterminate" />
+    }
+    @if (error(); as e) {
+      <div class="alert" role="alert">{{ e }}</div>
+    }
+    <div class="form-row">
+      <mat-form-field class="source">
+        <mat-label>source</mat-label>
+        <mat-select [formField]="form.sourceId">
+          @for (e of sources(); track e.id) {
+            <mat-option [value]="e.id">{{ e.id }}</mat-option>
+          }
+        </mat-select>
+        @if (
+          form.sourceId().getError('required') &&
+          (form.sourceId().dirty() || form.sourceId().touched())
+        ) {
+          <mat-error>source required</mat-error>
+        }
+      </mat-form-field>
+    </div>
+    @if (selected(); as s) {
+      <div class="form-row link">
         <mat-icon>link</mat-icon>
-        <a [attr.href]="source.value.value" target="_blank">{{
-          source.value.value
+        <a [attr.href]="s.value" target="_blank" rel="noopener">{{
+          s.value
         }}</a>
       </div>
-      <div class="form-row">
-        <button
-          type="button"
-          mat-icon-button
-          matTooltip="Discard changes"
-          (click)="cancel()"
-        >
-          <mat-icon class="mat-warn">clear</mat-icon>
-        </button>
-        <button
-          type="submit"
-          class="mat-primary"
-          mat-flat-button
-          matTooltip="Select source"
-          [disabled]="form.invalid || form.pristine"
-        >
-          <mat-icon>check_circle</mat-icon>
-          select
-        </button>
-      </div>
-    </form>
+    }
   </mat-card-content>
+  <mat-card-actions class="form-row">
+    <button
+      type="button"
+      mat-icon-button
+      class="mat-warn"
+      matTooltip="Discard changes"
+      aria-label="discard changes"
+      (click)="cancel()"
+    >
+      <mat-icon>clear</mat-icon>
+    </button>
+    <button
+      type="button"
+      mat-flat-button
+      matTooltip="Use the selected source"
+      [disabled]="
+        form().invalid() || !selected() || selected()?.id === currentId()
+      "
+      (click)="save()"
+    >
+      <mat-icon>check_circle</mat-icon>
+      select
+    </button>
+  </mat-card-actions>
 </mat-card>

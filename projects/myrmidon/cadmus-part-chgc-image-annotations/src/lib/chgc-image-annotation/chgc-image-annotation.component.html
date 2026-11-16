@@ -1,64 +1,73 @@
-<form [formGroup]="form" (submit)="save()">
-  <div class="form-row">
-    <!-- eid -->
-    <fieldset>
-      <legend>ID</legend>
-      <cadmus-ref-lookup
-        [item]="eid.value"
-        [service]="idLookupService"
-        [required]="true"
-        [options]="{ entries: idEntries }"
-        label="ID"
-        (itemChange)="onItemChange($event)"
-      />
-      <mat-error
-        *ngIf="$any(eid).errors?.required && (eid.dirty || eid.touched)"
-        >ID required</mat-error
-      >
-    </fieldset>
+<!-- no <form> here: Enter in a text input saves when the editor is valid and dirty -->
+<div class="editor" (keydown.enter)="onEnterKey($event)">
+  @if (idEntriesError(); as error) {
+    <div class="alert" role="alert">{{ error }}</div>
+  }
 
-    <!-- label -->
-    <div>
-      <mat-form-field>
-        <mat-label>label</mat-label>
-        <input matInput [formControl]="label" />
-        <mat-error
-          *ngIf="
-            $any(label).errors?.maxLength && (label.dirty || label.touched)
-          "
-          >label too long</mat-error
-        >
-      </mat-form-field>
-    </div>
+  <!-- eid -->
+  <div class="eid">
+    <cadmus-refs-lookup
+      label="ID"
+      [service]="idLookupService"
+      [item]="eidItem()"
+      [required]="true"
+      [options]="lookupOptions()"
+      (itemChange)="onItemChange($event)"
+    />
+    @if (
+      form.eid().getError('required') &&
+      (form.eid().dirty() || form.eid().touched())
+    ) {
+      <div class="field-error" role="alert">ID required</div>
+    }
   </div>
+
+  <!-- label -->
+  <mat-form-field class="full-width">
+    <mat-label>label</mat-label>
+    <input matInput [formField]="form.label" />
+    @if (form.label().getError('maxLength')) {
+      <mat-error>label too long</mat-error>
+    }
+  </mat-form-field>
 
   <!-- note -->
-  <div>
-    <mat-form-field class="long-text">
-      <mat-label>note</mat-label>
-      <textarea matInput [formControl]="note"></textarea>
-      <mat-error
-        *ngIf="$any(note).errors?.maxLength && (note.dirty || note.touched)"
-        >note too long</mat-error
-      >
-    </mat-form-field>
-  </div>
-  <div class="center-content">
+  <mat-form-field class="full-width">
+    <mat-label>note</mat-label>
+    <textarea
+      matInput
+      cdkTextareaAutosize
+      cdkAutosizeMinRows="3"
+      cdkAutosizeMaxRows="10"
+      [formField]="form.note"
+    ></textarea>
+    @if (form.note().getError('maxLength')) {
+      <mat-error>note too long</mat-error>
+    }
+  </mat-form-field>
+
+  <!-- buttons -->
+  <div class="buttons">
     <button
       type="button"
       mat-icon-button
+      class="mat-warn"
       matTooltip="Discard changes"
+      aria-label="discard changes"
       (click)="close()"
     >
-      <mat-icon class="mat-warn">clear</mat-icon>
+      <mat-icon>clear</mat-icon>
     </button>
     <button
-      type="submit"
+      type="button"
       mat-icon-button
+      class="mat-primary"
       matTooltip="Accept changes"
-      [disabled]="form.invalid || form.pristine"
+      aria-label="accept changes"
+      [disabled]="form().invalid() || !form().dirty()"
+      (click)="save()"
     >
-      <mat-icon class="mat-primary">check_circle</mat-icon>
+      <mat-icon>check_circle</mat-icon>
     </button>
   </div>
-</form>
+</div>

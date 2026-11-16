@@ -1,25 +1,10 @@
-fieldset {
-  border: 1px solid silver;
-  border-radius: 4px;
-  padding: 6px;
-  margin-bottom: 12px;
+.progress {
+  height: 4px;
 }
-legend {
-  color: silver;
-}
-/* row of elements */
-.form-row {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  flex-wrap: wrap;
-}
-.form-row * {
-  flex: 0 0 auto;
-}
-#xml {
-  height: 800px;
-}
-ngx-monaco-editor {
-  height: 100%;
+.xml {
+  display: block;
+  height: max(400px, calc(100vh - 360px));
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: var(--mat-sys-corner-small, 4px);
+  overflow: hidden;
 }

@@ -1,22 +1,18 @@
 import { Routes } from '@angular/router';
 
-import {
-  AuthJwtAdminGuardService,
-  AuthJwtGuardService,
-} from '@myrmidon/auth-jwt-login';
+// myrmidon
+import { jwtAdminGuard, jwtGuard } from '@myrmidon/auth-jwt-login';
 
-import { PendingChangesGuard } from '@myrmidon/cadmus-core';
-import { EditorGuardService } from '@myrmidon/cadmus-api';
+// cadmus
+import { editorGuard } from '@myrmidon/cadmus-api';
+import { pendingChangesGuard } from '@myrmidon/cadmus-core';
 
+// locals
 import { HomeComponent } from './home/home.component';
 import { LoginPageComponent } from './login-page/login-page.component';
 import { ResetPasswordComponent } from './reset-password/reset-password.component';
 import { RegisterUserPageComponent } from './register-user-page/register-user-page.component';
 import { ManageUsersPageComponent } from './manage-users-page/manage-users-page.component';
-import { GalleryOptionsComponent } from './gallery-options/gallery-options.component';
-import { ExportGroupComponent } from './export-group/export-group.component';
-import { ImportGroupComponent } from './import-group/import-group.component';
-import { ImportThesauriComponent } from './import-thesauri/import-thesauri.component';
 
 export const routes: Routes = [
   // local home
@@ -26,142 +22,153 @@ export const routes: Routes = [
   {
     path: 'reset-password',
     component: ResetPasswordComponent,
-    canActivate: [AuthJwtGuardService],
   },
   {
     path: 'register-user',
     component: RegisterUserPageComponent,
-    canActivate: [AuthJwtAdminGuardService],
+    canActivate: [jwtAdminGuard],
   },
   {
     path: 'manage-users',
     component: ManageUsersPageComponent,
-    canActivate: [AuthJwtAdminGuardService],
+    canActivate: [jwtAdminGuard],
   },
   {
     path: 'demo/layers',
     loadComponent: () =>
       import('@myrmidon/cadmus-layer-demo').then(
-        (module) => module.LayerDemoComponent
+        (module) => module.LayerDemoComponent,
       ),
   },
   // chgc
   {
     path: 'options',
-    component: GalleryOptionsComponent,
-    canActivate: [AuthJwtGuardService],
+    loadComponent: () =>
+      import('./gallery-options/gallery-options.component').then(
+        (module) => module.GalleryOptionsComponent,
+      ),
+    canActivate: [jwtGuard],
   },
   // export
   {
     path: 'export',
-    component: ExportGroupComponent,
-    canActivate: [AuthJwtGuardService],
+    loadComponent: () =>
+      import('./export-group/export-group.component').then(
+        (module) => module.ExportGroupComponent,
+      ),
+    canActivate: [jwtGuard],
   },
   // import
   {
     path: 'import/group',
-    component: ImportGroupComponent,
-    canActivate: [AuthJwtGuardService],
+    loadComponent: () =>
+      import('./import-group/import-group.component').then(
+        (module) => module.ImportGroupComponent,
+      ),
+    canActivate: [jwtGuard],
   },
   {
     path: 'import/thesauri',
-    component: ImportThesauriComponent,
-    canActivate: [AuthJwtAdminGuardService],
+    loadComponent: () =>
+      import('./import-thesauri/import-thesauri.component').then(
+        (module) => module.ImportThesauriComponent,
+      ),
+    canActivate: [jwtAdminGuard],
   },
   // cadmus - items
   {
     path: 'items/:id',
     loadComponent: () =>
       import('@myrmidon/cadmus-item-editor').then(
-        (module) => module.ItemEditorComponent
+        (module) => module.ItemEditorComponent,
       ),
-    canActivate: [AuthJwtGuardService],
-    canDeactivate: [PendingChangesGuard],
+    canActivate: [jwtGuard],
+    canDeactivate: [pendingChangesGuard],
   },
   {
     path: 'items',
     loadComponent: () =>
       import('@myrmidon/cadmus-item-list').then(
-        (module) => module.ItemListComponent
+        (module) => module.ItemListComponent,
       ),
-    canActivate: [AuthJwtGuardService],
+    canActivate: [jwtGuard],
   },
   {
     path: 'search',
     loadComponent: () =>
       import('@myrmidon/cadmus-item-search').then(
-        (module) => module.ItemSearchComponent
+        (module) => module.ItemSearchComponent,
       ),
-    canActivate: [AuthJwtGuardService],
+    canActivate: [jwtGuard],
   },
   // cadmus - thesauri
   {
     path: 'thesauri/:id',
     loadComponent: () =>
       import('@myrmidon/cadmus-thesaurus-editor').then(
-        (module) => module.ThesaurusEditorFeatureComponent
+        (module) => module.ThesaurusEditorFeatureComponent,
       ),
-    canActivate: [EditorGuardService],
+    canActivate: [editorGuard],
   },
   {
     path: 'thesauri',
     loadComponent: () =>
       import('@myrmidon/cadmus-thesaurus-list').then(
-        (module) => module.ThesaurusListComponent
+        (module) => module.ThesaurusListComponent,
       ),
-    canActivate: [EditorGuardService],
+    canActivate: [editorGuard],
   },
   // cadmus - flags
   {
     path: 'flags',
     loadComponent: () =>
       import('@myrmidon/cadmus-flags-pg').then(
-        (module) => module.FlagsEditorFeatureComponent
+        (module) => module.FlagsEditorFeatureComponent,
       ),
-    canActivate: [AuthJwtGuardService],
+    canActivate: [jwtGuard],
   },
   // cadmus - parts
   {
     path: 'items/:iid/general',
     loadChildren: () =>
       import('@myrmidon/cadmus-part-general-pg').then(
-        (module) => module.CadmusPartGeneralPgModule
+        (module) => module.CADMUS_PART_GENERAL_PG_ROUTES,
       ),
-    canActivate: [AuthJwtGuardService],
+    canActivate: [jwtGuard],
   },
   {
     path: 'items/:iid/philology',
     loadChildren: () =>
       import('@myrmidon/cadmus-part-philology-pg').then(
-        (module) => module.CadmusPartPhilologyPgModule
+        (module) => module.CADMUS_PART_PHILOLOGY_PG_ROUTES,
       ),
-    canActivate: [AuthJwtGuardService],
+    canActivate: [jwtGuard],
   },
   {
     path: 'items/:iid/chgc',
     loadChildren: () =>
       import('@myrmidon/cadmus-part-chgc-pg').then(
-        (module) => module.CadmusPartChgcPgModule
+        (module) => module.CADMUS_PART_CHGC_PG_ROUTES,
       ),
-    canActivate: [AuthJwtGuardService],
+    canActivate: [jwtGuard],
   },
   // cadmus - graph
   {
     path: 'graph',
     loadComponent: () =>
       import('@myrmidon/cadmus-graph-pg-ex').then(
-        (module) => module.GraphEditorExFeatureComponent
+        (module) => module.GraphEditorExFeatureComponent,
       ),
-    canActivate: [AuthJwtGuardService],
+    canActivate: [jwtGuard],
   },
   // cadmus - preview
   {
     path: 'preview',
     loadChildren: () =>
       import('@myrmidon/cadmus-preview-pg').then(
-        (module) => module.CadmusPreviewPgModule
+        (module) => module.CADMUS_PART_PREVIEW_PG_ROUTES,
       ),
-    canActivate: [AuthJwtGuardService],
+    canActivate: [jwtGuard],
   },
   // home
   { path: '', redirectTo: 'home', pathMatch: 'full' },

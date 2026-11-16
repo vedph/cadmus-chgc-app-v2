@@ -7,10 +7,11 @@
   height: 100%;
   object-fit: cover;
   object-position: left;
+  border-radius: var(--mat-sys-corner-medium, 12px);
 }
 article {
-  column-width: 600px;
-  column-count: 4;
+  column-width: 32em;
+  column-gap: 32px;
   margin: 16px;
 }
 .emph {

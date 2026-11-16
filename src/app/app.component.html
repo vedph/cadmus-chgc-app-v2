@@ -1,162 +1,156 @@
 <header>
-  <mat-toolbar>
-    <span id="logo"
-      ><img src="./img/logo-white-40.png" alt="Fusisoft"
-    /></span>
-    <a mat-button routerLink="/home">Cadmus CHIGC</a>
+  <mat-toolbar
+    class="env-branded-toolbar"
+    [style.--app-env-color]="branding().bg"
+    [style.--app-env-on-color]="branding().text"
+  >
+    <span id="logo"><img src="./img/logo-white-40.png" alt="Fusisoft" /></span>
+    <a mat-button routerLink="/home">Cadmus CHGC</a>
 
     <!-- items menu -->
-    <button
-      type="button"
-      mat-button
-      [matMenuTriggerFor]="itemMenu"
-      *ngIf="logged && itemBrowsers"
-    >
-      Items
-    </button>
+    @if (logged() && itemBrowsers()) {
+      <button type="button" mat-button [matMenuTriggerFor]="itemMenu">
+        Items
+      </button>
+    }
     <mat-menu #itemMenu>
       <a mat-menu-item routerLink="/items">Items</a>
-      <a
-        mat-menu-item
-        *ngFor="let entry of itemBrowsers"
-        [routerLink]="'item-browser/' + getItemBrowserRoute(entry.id)"
-        >{{ entry.value }}</a
-      >
+      @for (entry of itemBrowsers(); track entry.id) {
+        <a
+          mat-menu-item
+          [routerLink]="'item-browser/' + getItemBrowserRoute(entry.id)"
+          >{{ entry.value }}</a
+        >
+      }
     </mat-menu>
-    <!-- item menu -->
-    <ng-container *ngIf="logged && !itemBrowsers">
-      <button type="button" mat-button routerLink="/items">Items</button>
-    </ng-container>
+    @if (logged() && !itemBrowsers()) {
+      <a mat-button routerLink="/items">Items</a>
+    }
 
     <!-- search menu -->
-    <button type="button" mat-button routerLink="/search" *ngIf="logged">
-      Search
-    </button>
+    @if (logged()) {
+      <a mat-button routerLink="/search">Search</a>
+    }
 
     <!-- resources menu -->
-    <button
-      type="button"
-      mat-button
-      [matMenuTriggerFor]="resourceMenu"
-      *ngIf="logged"
-    >
-      Resources
-    </button>
+    @if (logged()) {
+      <button type="button" mat-button [matMenuTriggerFor]="resourceMenu">
+        Resources
+      </button>
+    }
     <mat-menu #resourceMenu>
-      <a
-        mat-menu-item
-        routerLink="/thesauri"
-        *ngIf="
-          user &&
-          (user.roles.includes('admin') || user.roles.includes('editor'))
-        "
-        >Thesauri</a
-      >
-      <a
-        mat-menu-item
-        routerLink="/import/thesauri"
-        *ngIf="user && user.roles.includes('admin')"
-        >Import thesauri</a
-      >
-      <a
-        mat-menu-item
-        routerLink="/flags"
-        *ngIf="
-          user &&
-          (user.roles.includes('admin') || user.roles.includes('editor'))
-        "
-        >Flags
-      </a>
+      @if (isEditor()) {
+        <a mat-menu-item routerLink="/thesauri">Thesauri</a>
+      }
+      @if (isAdmin()) {
+        <a mat-menu-item routerLink="/import/thesauri">Import thesauri</a>
+      }
+      @if (isEditor()) {
+        <a mat-menu-item routerLink="/flags">Flags</a>
+      }
+      @if (isEditor() || isAdmin()) {
+        <mat-divider />
+      }
       <a mat-menu-item routerLink="/import/group">Import pages</a>
       <a mat-menu-item routerLink="/export">Export TEI</a>
       <a mat-menu-item routerLink="/options">Options</a>
     </mat-menu>
 
-    <!-- graph menu -->
-    <!-- <button mat-button routerLink="/graph" *ngIf="logged">Graph</button> -->
-
-    <!-- demo menu -->
-    <!-- <button type="button" mat-button [matMenuTriggerFor]="demoMenu">
-      Demo
-    </button>
-    <mat-menu #demoMenu>
-      <button type="button" mat-menu-item routerLink="/demo/layers">
-        Text Layers
-      </button>
-    </mat-menu> -->
-
     <span class="tb-fill-remaining-space"></span>
 
     <!-- user -->
-    <div *ngIf="user">
-      <!-- indicators -->
-      <span id="gallery" *ngIf="galleryId">{{ galleryId }}</span>
-      <img
-        alt="avatar"
-        [src]="user.email | gravatar : 32"
-        [alt]="user.userName"
-      />
-      <mat-icon
-        class="small-icon"
-        *ngIf="user && user.roles.includes('admin')"
-        title="admin"
-        >build</mat-icon
-      >
-      <mat-icon
-        class="small-icon"
-        *ngIf="user && !user.emailConfirmed"
-        title="You must verify your email address! Please check your mailbox {{
-          user.email
-        }}"
-        >feedback</mat-icon
-      >
+    @if (user(); as user) {
+      <div class="user">
+        <!-- indicators -->
+        @if (galleryId(); as id) {
+          <a
+            id="gallery"
+            routerLink="/options"
+            matTooltip="Current image source: click to change"
+            >{{ id }}</a
+          >
+        }
+        <img
+          class="avatar"
+          [src]="user.email | gravatar: 32"
+          [alt]="user.userName"
+        />
+        @if (isAdmin()) {
+          <mat-icon class="small-icon" title="admin">build</mat-icon>
+        }
+        @if (!user.emailConfirmed) {
+          <mat-icon
+            class="small-icon"
+            title="You must verify your email address! Please check your mailbox {{
+              user.email
+            }}"
+            >feedback</mat-icon
+          >
+        }
 
-      <!-- user menu -->
-      <button type="button" mat-button [matMenuTriggerFor]="userMenu">
-        User
-      </button>
-      <mat-menu #userMenu>
-        <a mat-menu-item routerLink="/reset-password">Reset password</a>
-      </mat-menu>
+        <!-- user menu -->
+        <button type="button" mat-button [matMenuTriggerFor]="userMenu">
+          User
+        </button>
+        <mat-menu #userMenu>
+          <a mat-menu-item routerLink="/reset-password">Reset password</a>
+        </mat-menu>
 
-      <!-- admin menu -->
-      <button
-        type="button"
-        *ngIf="user && user.roles.includes('admin')"
-        mat-button
-        [matMenuTriggerFor]="adminMenu"
-      >
-        Admin
-      </button>
-      <mat-menu #adminMenu>
-        <a mat-menu-item routerLink="/manage-users">Manage users</a>
-        <a mat-menu-item routerLink="/register-user">Register user</a>
-      </mat-menu>
-    </div>
+        <!-- admin menu -->
+        @if (isAdmin()) {
+          <button type="button" mat-button [matMenuTriggerFor]="adminMenu">
+            Admin
+          </button>
+        }
+        <mat-menu #adminMenu>
+          <a mat-menu-item routerLink="/manage-users">Manage users</a>
+          <a mat-menu-item routerLink="/register-user">Register user</a>
+        </mat-menu>
+      </div>
+    }
 
     <!-- login -->
-    <button type="button" *ngIf="!logged" mat-icon-button routerLink="/login">
-      <mat-icon>login</mat-icon>
-    </button>
+    @if (!logged()) {
+      <a
+        mat-icon-button
+        routerLink="/login"
+        [queryParams]="{ returnUrl: 'items' }"
+        matTooltip="Login"
+        aria-label="login"
+      >
+        <mat-icon>login</mat-icon>
+      </a>
+    }
     <!-- logout -->
-    <button type="button" *ngIf="logged" mat-icon-button (click)="logout()">
-      <mat-icon>logout</mat-icon>
-    </button>
+    @if (logged()) {
+      <button
+        type="button"
+        mat-icon-button
+        matTooltip="Logout"
+        aria-label="logout"
+        (click)="logout()"
+      >
+        <mat-icon>logout</mat-icon>
+      </button>
+    }
+
+    <ngx-theme-toggle />
   </mat-toolbar>
 </header>
 
 <main>
-  <router-outlet></router-outlet>
+  <router-outlet />
 </main>
 
 <footer>
-  <div layout="row" layout-align="center center">
-    <p>
-      Cadmus by
-      <a rel="noopener" href="http://www.fusisoft.it" target="_blank"
-        >Daniele Fusi</a
-      >
-      - version {{ version }}
-    </p>
-  </div>
+  <p>
+    <a href="https://vedph.github.io/cadmus-doc" rel="noopener" target="_blank"
+      >Cadmus</a
+    >
+    CHGC by
+    <a rel="noopener" href="https://myrmex.github.io/overview" target="_blank"
+      >Daniele Fusi</a
+    >
+    - version {{ version() }}
+  </p>
 </footer>

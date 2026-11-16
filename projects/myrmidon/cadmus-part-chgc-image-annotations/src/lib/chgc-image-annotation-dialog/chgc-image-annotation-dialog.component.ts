@@ -1,41 +1,37 @@
-import { Component, Inject } from '@angular/core';
-
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import {
   MAT_DIALOG_DATA,
+  MatDialogContent,
   MatDialogRef,
   MatDialogTitle,
-  MatDialogContent,
 } from '@angular/material/dialog';
-import { CdkScrollable } from '@angular/cdk/scrolling';
 
-import { ListAnnotation } from '@myrmidon/ngx-annotorious';
-
-import { ChgcAnnotationPayload } from '../chgc-image-annotations';
+import { ChgcListAnnotation } from '../chgc-image-annotations';
 import { ChgcImageAnnotationComponent } from '../chgc-image-annotation/chgc-image-annotation.component';
 
+/**
+ * Dialog wrapper for `ChgcImageAnnotationComponent`. It receives the list
+ * annotation to edit as its data, and closes with the edited annotation,
+ * or with no result when the user discards the changes.
+ */
 @Component({
   selector: 'cadmus-chgc-image-annotation-dialog',
   templateUrl: './chgc-image-annotation-dialog.component.html',
-  styleUrls: ['./chgc-image-annotation-dialog.component.css'],
-  imports: [
-    MatDialogTitle,
-    CdkScrollable,
-    MatDialogContent,
-    ChgcImageAnnotationComponent,
-  ],
+  styleUrl: './chgc-image-annotation-dialog.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [MatDialogTitle, MatDialogContent, ChgcImageAnnotationComponent],
 })
 export class ChgcImageAnnotationDialogComponent {
-  constructor(
-    public dialogRef: MatDialogRef<ChgcImageAnnotationDialogComponent>,
-    @Inject(MAT_DIALOG_DATA)
-    public data: ListAnnotation<ChgcAnnotationPayload>
-  ) {}
+  public readonly dialogRef = inject(
+    MatDialogRef<ChgcImageAnnotationDialogComponent>,
+  );
+  public readonly data = inject<ChgcListAnnotation>(MAT_DIALOG_DATA);
 
-  onCloseClick(): void {
+  public onCloseClick(): void {
     this.dialogRef.close();
   }
 
-  onSaveClick(annotation: ListAnnotation<ChgcAnnotationPayload>): void {
+  public onSaveClick(annotation: ChgcListAnnotation | undefined): void {
     this.dialogRef.close(annotation);
   }
 }

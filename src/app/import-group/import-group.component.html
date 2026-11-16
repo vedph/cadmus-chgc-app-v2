@@ -1,67 +1,84 @@
-<mat-card>
+<mat-card appearance="outlined">
   <mat-card-header>
+    <div mat-card-avatar>
+      <mat-icon>file_upload</mat-icon>
+    </div>
     <mat-card-title>Import TEI</mat-card-title>
+    <mat-card-subtitle>
+      import the pages of a TEI document as new items of a group
+    </mat-card-subtitle>
   </mat-card-header>
   <mat-card-content>
-    <mat-progress-bar mode="indeterminate" *ngIf="busy"></mat-progress-bar>
-    <div id="result" *ngIf="addedCount">Imported items: {{ addedCount }}.</div>
+    <div class="progress">
+      @if (busy()) {
+        <mat-progress-bar mode="indeterminate" />
+      }
+    </div>
+    @if (addedCount() !== undefined) {
+      <div class="result" role="status">
+        <mat-icon>check_circle</mat-icon>
+        Imported items: {{ addedCount() }}.
+      </div>
+    }
     <fieldset>
-      <form [formGroup]="form" (submit)="import()">
-        <div class="form-row">
-          <!-- group ID-->
-          <mat-form-field>
-            <mat-label>group ID</mat-label>
-            <input matInput [formControl]="groupId" />
-            <mat-error
-              *ngIf="
-                $any(groupId).errors?.required &&
-                (groupId.dirty || groupId.touched)
-              "
-              >group ID required</mat-error
-            >
-            <mat-error
-              *ngIf="
-                $any(groupId).errors?.maxLength &&
-                (groupId.dirty || groupId.touched)
-              "
-              >group ID too long</mat-error
-            >
-          </mat-form-field>
-          <!-- button -->
-          <button
-            type="submit"
-            mat-flat-button
-            class="mat-primary"
-            [disabled]="form.invalid"
-          >
-            import
-          </button>
-        </div>
-
-        <!-- shortener -->
-        <div>
-          <mat-form-field class="long-text">
-            <mat-label>URI shortener</mat-label>
-            <textarea matInput [formControl]="shortener" rows="3"></textarea>
-            <mat-hint>rep dsc URI with $1</mat-hint>
-            <mat-error
-              *ngIf="
-                $any(shortener).errors?.maxLength &&
-                (shortener.dirty || shortener.touched)
-              "
-              >shortener too long</mat-error
-            >
-          </mat-form-field>
-        </div>
-
-        <!-- text -->
-        <div id="xml">
-          <nge-monaco-editor
-            style="--editor-height: 600px"
-            (ready)="onCreateEditor($event)"
+      <legend>group</legend>
+      <div class="form-row">
+        <!-- group ID-->
+        <mat-form-field>
+          <mat-label>group ID</mat-label>
+          <input
+            matInput
+            [formField]="form.groupId"
+            (keydown.enter)="onGroupIdEnter($event)"
           />
-        </div>
-      </form>
+          @if (form.groupId().getError('required')) {
+            <mat-error>group ID required</mat-error>
+          }
+          @if (form.groupId().getError('maxLength')) {
+            <mat-error>group ID too long</mat-error>
+          }
+        </mat-form-field>
+        <!-- button -->
+        <button
+          type="button"
+          mat-flat-button
+          class="mat-warn"
+          matTooltip="Import the TEI document into new items"
+          [disabled]="busy() || form().invalid()"
+          (click)="import()"
+        >
+          <mat-icon>file_upload</mat-icon>
+          import
+        </button>
+      </div>
+
+      <!-- shortener -->
+      <mat-form-field class="long-text">
+        <mat-label>URI shortener</mat-label>
+        <textarea matInput rows="2" [formField]="form.shortener"></textarea>
+        <mat-hint>rep dsc URI with $1</mat-hint>
+        @if (form.shortener().getError('maxLength')) {
+          <mat-error>shortener too long</mat-error>
+        }
+      </mat-form-field>
     </fieldset>
+
+    <!-- XML -->
+    @if (form.xml().getError('maxLength')) {
+      <div class="field-error" role="alert">TEI document too long</div>
+    } @else if (
+      form.xml().getError('required') && form.xml().touched()
+    ) {
+      <div class="field-error" role="alert">TEI document required</div>
+    }
+    <ngx-monaco-editor
+      class="xml"
+      language="xml"
+      [options]="editorOptions"
+      [theme]="themeService.isDarkMode() ? 'vs-dark' : 'vs'"
+      [value]="form.xml().value()"
+      (valueChange)="setFieldFromEditor(form.xml, $event)"
+      (blur)="form.xml().markAsTouched()"
+    />
   </mat-card-content>
 </mat-card>

@@ -1,57 +1,59 @@
-<div *ngIf="list">
-  <table *ngIf="list!.annotations$ | async as annotations">
-    <thead>
-      <tr>
-        <th></th>
-        <th>annotation</th>
-        <th class="noif-lt-md">ID</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr
-        *ngFor="let a of annotations; let i = index"
-        [class.selected]="a === (list!.selectedAnnotation$ | async)"
-      >
-        <td class="fit-width">
+@if (annotations().length) {
+  <ol class="list" aria-label="annotations">
+    @for (a of annotations(); track a.id; let i = $index) {
+      <li class="item" [class.selected]="i === selectedIndex()">
+        <button
+          type="button"
+          class="summary"
+          [attr.aria-pressed]="i === selectedIndex()"
+          [matTooltip]="i === selectedIndex() ? 'Deselect' : 'Select'"
+          (click)="toggleSelection(a)"
+        >
+          <span class="index">{{ i + 1 }}</span>
+          <span class="text">
+            <span class="eid">{{
+              annotationToString()(a) || '(no ID)'
+            }}</span>
+            @if (a.payload?.label) {
+              <span class="label">{{ a.payload?.label }}</span>
+            }
+            @if (a.payload?.note) {
+              <span class="note">{{ a.payload?.note }}</span>
+            }
+          </span>
+          @if (getShapeType(i); as shape) {
+            <span class="shape">{{ shape }}</span>
+          }
+        </button>
+        <span class="actions">
           <button
             type="button"
             mat-icon-button
-            (click)="selectAnnotation(i)"
-            matTooltip="Select annotation"
-          >
-            <mat-icon>check_circle</mat-icon>
-          </button>
-          <button
-            type="button"
-            mat-icon-button
-            (click)="removeAnnotation(i)"
-            matTooltip="Remove annotation"
-          >
-            <mat-icon class="mat-warn">delete</mat-icon>
-          </button>
-          <!-- TODO remove bug button -->
-          <button
-            type="button"
-            mat-icon-button
-            (click)="dumpAnnotation(a)"
-            matTooltip="Dump to console"
-          >
-            <mat-icon [style.color]="a.value.target ? 'inherit' : 'red'"
-              >bug_report</mat-icon
-            >
-          </button>
-          <button
-            type="button"
-            mat-icon-button
-            (click)="editAnnotationAt(i)"
+            class="mat-primary"
             matTooltip="Edit annotation"
+            aria-label="edit annotation"
+            [disabled]="disabled()"
+            (click)="editAnnotationAt(i)"
           >
-            <mat-icon class="mat-primary">edit</mat-icon>
+            <mat-icon>edit</mat-icon>
           </button>
-        </td>
-        <td>{{ a | objectToString : annotationToString() }}</td>
-        <td class="muted noif-lt-md">{{ a.id }}</td>
-      </tr>
-    </tbody>
-  </table>
-</div>
+          <button
+            type="button"
+            mat-icon-button
+            class="mat-warn"
+            matTooltip="Remove annotation"
+            aria-label="remove annotation"
+            [disabled]="disabled()"
+            (click)="removeAnnotationAt(i)"
+          >
+            <mat-icon>delete</mat-icon>
+          </button>
+        </span>
+      </li>
+    }
+  </ol>
+} @else {
+  <p class="empty">
+    No annotations. Draw a shape on the image to add an annotation.
+  </p>
+}

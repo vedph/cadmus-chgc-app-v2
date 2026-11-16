@@ -1,6 +1,6 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { Router } from '@angular/router';
-import { CommonModule } from '@angular/common';
+
 import { ReactiveFormsModule } from '@angular/forms';
 
 import { MatButtonModule } from '@angular/material/button';
@@ -18,8 +18,8 @@ import { AuthJwtRegistrationComponent } from '@myrmidon/auth-jwt-admin';
   standalone: true,
   templateUrl: './register-user-page.component.html',
   styleUrls: ['./register-user-page.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     MatButtonModule,
     MatCardModule,
@@ -28,13 +28,13 @@ import { AuthJwtRegistrationComponent } from '@myrmidon/auth-jwt-admin';
     MatInputModule,
     MatProgressBarModule,
     MatTooltipModule,
-    AuthJwtRegistrationComponent,
-  ],
+    AuthJwtRegistrationComponent
+],
 })
 export class RegisterUserPageComponent {
   constructor(private _router: Router) {}
 
   public onRegistered(): void {
-    this._router.navigate(['/home']);
+    this._router.navigate(['/manage-users']);
   }
 }

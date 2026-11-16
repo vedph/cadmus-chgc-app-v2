@@ -1,17 +1,22 @@
-import { Component, OnInit } from '@angular/core';
-import { Router, ActivatedRoute } from '@angular/router';
+import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { ActivatedRoute, Router } from '@angular/router';
 
-import { EditPartFeatureBase, PartEditorService } from '@myrmidon/cadmus-state';
 import { ItemService, ThesaurusService } from '@myrmidon/cadmus-api';
-import { CurrentItemBarComponent } from '@myrmidon/cadmus-ui-pg';
+import { EditPartFeatureBase, PartEditorService } from '@myrmidon/cadmus-state';
+import { CurrentItemBarComponent } from '@myrmidon/cadmus-item-editor';
 
+import {
+  CHGC_GALLERY_FILTERS_THESAURUS_ID,
+  CHGC_IDS_THESAURUS_ID,
+} from '../chgc-image-annotations';
 import { ChgcImageAnnotationsPartComponent } from '../chgc-image-annotations-part/chgc-image-annotations-part.component';
 
 @Component({
   selector: 'cadmus-chgc-image-annotations-part-feature',
   templateUrl: './chgc-image-annotations-part-feature.component.html',
-  styleUrls: ['./chgc-image-annotations-part-feature.component.css'],
+  styleUrl: './chgc-image-annotations-part-feature.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CurrentItemBarComponent, ChgcImageAnnotationsPartComponent],
 })
 export class ChgcImageAnnotationsPartFeatureComponent
@@ -24,7 +29,7 @@ export class ChgcImageAnnotationsPartFeatureComponent
     snackbar: MatSnackBar,
     itemService: ItemService,
     thesaurusService: ThesaurusService,
-    editorService: PartEditorService
+    editorService: PartEditorService,
   ) {
     super(
       router,
@@ -32,11 +37,11 @@ export class ChgcImageAnnotationsPartFeatureComponent
       snackbar,
       itemService,
       thesaurusService,
-      editorService
+      editorService,
     );
   }
 
   protected override getReqThesauriIds(): string[] {
-    return ['gallery-image-annotation-filters', 'chgc-ids'];
+    return [CHGC_GALLERY_FILTERS_THESAURUS_ID, CHGC_IDS_THESAURUS_ID];
   }
 }

@@ -1,26 +1,31 @@
-.form-row {
+.editor {
   display: flex;
+  flex-direction: column;
   gap: 8px;
-  align-items: center;
-  flex-wrap: wrap;
+  width: min(560px, 100%);
 }
-.form-row * {
-  flex: 0 0 auto;
-}
-fieldset {
-  border: 1px solid silver;
-  border-radius: 6px;
-  padding: 4px;
-  margin: 8px 0;
-}
-legend {
-  color: silver;
-}
-.long-text {
-  width: 100%;
-  max-width: 800px;
-}
-.center-content {
+.eid {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 8px;
+}
+.full-width {
+  width: 100%;
+}
+.field-error {
+  color: var(--mat-sys-error);
+  font: var(--mat-sys-body-small);
+  padding: 0 16px;
+}
+.alert {
+  background-color: var(--mat-sys-error-container);
+  color: var(--mat-sys-on-error-container);
+  border-radius: var(--mat-sys-corner-small, 4px);
+  padding: 8px 12px;
+}
+.buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
 }

@@ -1,3 +1,12 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+main {
+  flex: 1 1 auto;
+  padding: 8px;
+}
 .small-icon {
   font-size: 85% !important;
   margin-left: 8px;
@@ -8,22 +17,49 @@
 #logo {
   flex: 0 0 60px;
 }
+.user {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.avatar {
+  border-radius: 50%;
+}
 #gallery {
-  border: 1px solid #fefefe;
-  border-radius: 4px;
-  padding: 2px;
-  font-size: 70%;
-  margin-right: 20px;
+  border: 1px solid currentColor;
+  border-radius: var(--mat-sys-corner-small, 4px);
+  padding: 2px 6px;
+  font: var(--mat-sys-label-small);
+  color: inherit;
+  text-decoration: none;
+  margin-right: 16px;
+  opacity: 0.9;
+}
+#gallery:hover {
+  opacity: 1;
 }
 footer {
-  background-color: #f0f0f0;
-  color: #808080;
+  color: var(--mat-sys-on-surface-variant);
   padding: 4px;
   text-align: center;
 }
-mat-toolbar {
-  background-color: #1976d2;
+footer a {
+  color: var(--mat-sys-on-surface-variant);
+  text-decoration: none;
 }
-mat-toolbar mat-icon {
-  color: white;
+footer a:hover {
+  text-decoration: underline;
+}
+@media (max-width: 599px) {
+  #gallery,
+  #logo {
+    display: none;
+  }
+  /* let the toolbar wrap rather than overflow the viewport */
+  mat-toolbar {
+    flex-wrap: wrap;
+    height: auto;
+    min-height: var(--mat-toolbar-mobile-height, 56px);
+    padding: 4px 8px;
+  }
 }

@@ -3,6 +3,8 @@
  */
 
 export * from './lib/chgc-image-annotations';
+export * from './lib/chgc-image-annotation/annotation-thesauri.service';
+export * from './lib/chgc-image-annotation/id-lookup.service';
 export * from './lib/chgc-image-annotation/chgc-image-annotation.component';
 export * from './lib/chgc-image-annotation-dialog/chgc-image-annotation-dialog.component';
 export * from './lib/chgc-img-annotation-list/chgc-img-annotation-list.component';

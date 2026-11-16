@@ -1,9 +1,14 @@
-.form-row {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  flex-wrap: wrap;
+.source {
+  width: min(400px, 100%);
 }
-.form-row * {
-  flex: 0 0 auto;
+.link a {
+  overflow-wrap: anywhere;
+  color: var(--mat-sys-primary);
+}
+.alert {
+  margin: 8px 0;
+  padding: 8px 12px;
+  border-radius: var(--mat-sys-corner-small, 4px);
+  background-color: var(--mat-sys-error-container);
+  color: var(--mat-sys-on-error-container);
 }

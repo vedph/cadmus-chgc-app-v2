@@ -1,45 +1,59 @@
-<mat-card>
+<mat-card appearance="outlined">
   <mat-card-header>
+    <div mat-card-avatar>
+      <mat-icon>file_download</mat-icon>
+    </div>
     <mat-card-title>Export TEI</mat-card-title>
+    <mat-card-subtitle>
+      export a group into a new TEI document, or paste a TEI document to
+      patch it
+    </mat-card-subtitle>
   </mat-card-header>
   <mat-card-content>
-    <mat-progress-bar mode="indeterminate" *ngIf="busy"></mat-progress-bar>
-    <fieldset>
-      <form [formGroup]="form" (submit)="export()">
-        <legend>group</legend>
-        <div class="form-row">
-          <cadmus-ref-lookup
-            [service]="lookupService"
-            [item]="groupId.value"
-            [required]="true"
-            label="group"
-            (itemChange)="onGroupChange($event)"
-          />
-
-          <button
-            type="submit"
-            mat-flat-button
-            class="mat-primary"
-            [disabled]="form.invalid"
-          >
-            export
-          </button>
-          <button
-            type="button"
-            mat-flat-button
-            [disabled]="busy || !xml.value"
-            (click)="save()"
-          >
-            save
-          </button>
-        </div>
-      </form>
-    </fieldset>
-    <div id="xml">
-      <nge-monaco-editor
-        style="--editor-height: 600px"
-        (ready)="onCreateEditor($event)"
-      />
+    <div class="progress">
+      @if (busy()) {
+        <mat-progress-bar mode="indeterminate" />
+      }
     </div>
+    <fieldset>
+      <legend>group</legend>
+      <div class="form-row">
+        <cadmus-refs-lookup
+          label="group"
+          [service]="lookupService"
+          [item]="form.groupId().value() || undefined"
+          [required]="true"
+          (itemChange)="onGroupChange($event)"
+        />
+        <button
+          type="button"
+          mat-flat-button
+          matTooltip="Export the group into the TEI document"
+          [disabled]="busy() || form().invalid()"
+          (click)="export()"
+        >
+          <mat-icon>file_download</mat-icon>
+          export
+        </button>
+        <button
+          type="button"
+          mat-stroked-button
+          matTooltip="Save the TEI document to a file"
+          [disabled]="busy() || form().invalid() || !form.xml().value()"
+          (click)="save()"
+        >
+          <mat-icon>save</mat-icon>
+          save
+        </button>
+      </div>
+    </fieldset>
+    <ngx-monaco-editor
+      class="xml"
+      language="xml"
+      [options]="editorOptions"
+      [theme]="themeService.isDarkMode() ? 'vs-dark' : 'vs'"
+      [value]="form.xml().value()"
+      (valueChange)="setFieldFromEditor(form.xml, $event)"
+    />
   </mat-card-content>
 </mat-card>

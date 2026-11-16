@@ -1,252 +1,310 @@
 import {
-  ChangeDetectorRef,
+  ChangeDetectionStrategy,
   Component,
+  computed,
+  DestroyRef,
   effect,
-  Inject,
+  inject,
+  input,
+  linkedSignal,
   model,
-  OnDestroy,
-  OnInit,
+  signal,
+  untracked,
+  viewChild,
 } from '@angular/core';
-import { Subscription, take } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
 
-import {
-  MAT_DIALOG_DEFAULT_OPTIONS,
-  MatDialog,
-  MatDialogConfig,
-} from '@angular/material/dialog';
-
-import { ImageAnnotation } from '@annotorious/annotorious';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatTabsModule } from '@angular/material/tabs';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 import {
   GalleryImage,
   ImgAnnotationList,
-  ListAnnotation,
-  ImgAnnotatorToolbarComponent,
   ImgAnnotatorDirective,
+  ImgAnnotatorToolbarComponent,
 } from '@myrmidon/ngx-annotorious';
-
-import { ThesaurusEntry } from '@myrmidon/cadmus-core';
 import {
-  GalleryOptionsService,
-  GalleryService,
-  IMAGE_GALLERY_SERVICE_KEY,
+  GalleryFilterEntry,
   GalleryListComponent,
+  GalleryOptionsService,
+  IMAGE_GALLERY_SERVICE_KEY,
 } from '@myrmidon/cadmus-img-gallery';
+import { DialogService } from '@myrmidon/ngx-mat-tools';
 
+import {
+  ChgcAnnotationPayload,
+  ChgcListAnnotation,
+  isSameGalleryImage,
+  sameChgcAnnotations,
+} from '../chgc-image-annotations';
 import { ChgcImageAnnotationDialogComponent } from '../chgc-image-annotation-dialog/chgc-image-annotation-dialog.component';
-import { NgIf } from '@angular/common';
-import { MatProgressBar } from '@angular/material/progress-bar';
-import { MatTabGroup, MatTab } from '@angular/material/tabs';
-
-import { ChgcAnnotationPayload } from '../chgc-image-annotations';
 import { ChgcImgAnnotationListComponent } from '../chgc-img-annotation-list/chgc-img-annotation-list.component';
 
+/**
+ * The default entries for the gallery filter, used when no entries
+ * are specified.
+ */
+export const DEFAULT_CHGC_GALLERY_FILTER_ENTRIES: readonly GalleryFilterEntry[] =
+  Object.freeze([{ id: 'title', value: 'title' }]);
+
+const ANNOTATOR_TAB = 0;
+const GALLERY_TAB = 1;
+
+/**
+ * The CHGC gallery image annotator. This orchestrates an image gallery,
+ * where the user picks the image to annotate, an image annotator, and the
+ * list of the annotations drawn on the image.
+ *
+ * The `annotations` model is the source of truth: it is pushed into the
+ * annotations list whenever it changes, and it is updated (emitting
+ * `annotationsChange`) whenever the user changes the annotations.
+ */
 @Component({
   selector: 'cadmus-chgc-gallery-img-annotator',
   templateUrl: './chgc-gallery-img-annotator.component.html',
-  styleUrls: ['./chgc-gallery-img-annotator.component.css'],
+  styleUrl: './chgc-gallery-img-annotator.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    NgIf,
-    MatProgressBar,
-    MatTabGroup,
-    MatTab,
+    MatButtonModule,
+    MatIconModule,
+    MatProgressBarModule,
+    MatTabsModule,
+    MatTooltipModule,
     ImgAnnotatorToolbarComponent,
     ImgAnnotatorDirective,
-    ChgcImgAnnotationListComponent,
     GalleryListComponent,
+    ChgcImgAnnotationListComponent,
   ],
 })
-export class ChgcGalleryImgAnnotatorComponent implements OnInit, OnDestroy {
-  private _sub?: Subscription;
-  private _list?: ImgAnnotationList<ChgcAnnotationPayload>;
-  private _pendingAnnotations?: ListAnnotation<ChgcAnnotationPayload>[];
-
-  public loading?: boolean;
-  public entries: ThesaurusEntry[];
-  public annotator?: any;
-  public editorComponent = ChgcImageAnnotationDialogComponent;
-  public tool: string = 'rectangle';
-  public tabIndex: number = 0;
-
-  public annotationToString: (
-    a: ListAnnotation<ChgcAnnotationPayload>
-  ) => string = (a: ListAnnotation<ChgcAnnotationPayload>) => {
-    return a.payload?.eid || '';
-  };
+export class ChgcGalleryImgAnnotatorComponent {
+  private readonly _galleryService = inject(IMAGE_GALLERY_SERVICE_KEY);
+  private readonly _options = inject(GalleryOptionsService);
+  private readonly _dialogService = inject(DialogService);
+  private readonly _annotatorDirective = viewChild(ImgAnnotatorDirective);
+  private _destroyed = false;
+  private _pickId = 0;
 
   /**
    * The gallery image to annotate.
    */
-  public readonly image = model<GalleryImage>();
+  public readonly image = model<GalleryImage | undefined>();
+
   /**
    * The annotations being edited.
    */
-  public readonly annotations = model<ListAnnotation<ChgcAnnotationPayload>[]>(
-    []
+  public readonly annotations = model<ChgcListAnnotation[]>([]);
+
+  /**
+   * The entries for the gallery filter. When not set, the default entries
+   * are used (`DEFAULT_CHGC_GALLERY_FILTER_ENTRIES`).
+   */
+  public readonly filterEntries = input<GalleryFilterEntry[] | null>();
+
+  /**
+   * True to disable editing.
+   */
+  public readonly disabled = input<boolean | undefined>(false);
+
+  /**
+   * The component used to edit annotations.
+   */
+  public readonly editorComponent = ChgcImageAnnotationDialogComponent;
+
+  /**
+   * The function used to summarize an annotation.
+   */
+  public readonly annotationToString = (a: ChgcListAnnotation): string =>
+    a.payload?.eid || '';
+
+  /**
+   * The current drawing tool.
+   */
+  public readonly tool = signal<string>('rectangle');
+
+  /**
+   * The URI of the image being annotated.
+   */
+  public readonly imageUri = computed(() => this.image()?.uri || '');
+
+  /**
+   * The selected tab: the annotator when there is an image, else the
+   * gallery. It is reset whenever the image changes.
+   */
+  public readonly tabIndex = linkedSignal<number>(() =>
+    this.imageUri() ? ANNOTATOR_TAB : GALLERY_TAB,
   );
 
-  public imageAnnotations: ImageAnnotation[] = [];
+  /**
+   * True while the image is being loaded.
+   */
+  public readonly imageLoading = signal<boolean>(false);
 
-  constructor(
-    public dialog: MatDialog,
-    @Inject(MAT_DIALOG_DEFAULT_OPTIONS) public dlgConfig: MatDialogConfig,
-    @Inject(IMAGE_GALLERY_SERVICE_KEY)
-    private _galleryService: GalleryService,
-    private _options: GalleryOptionsService,
-    private changeDetector: ChangeDetectorRef
-  ) {
-    // mock filter entries
-    this.entries = [
-      {
-        id: 'title',
-        value: 'title',
-      },
-      {
-        id: 'dsc',
-        value: 'description',
-      },
-    ];
+  /**
+   * True while the picked image is being retrieved from the gallery.
+   */
+  public readonly picking = signal<boolean>(false);
 
+  /**
+   * The last error, if any.
+   */
+  public readonly error = signal<string | undefined>(undefined);
+
+  /**
+   * The annotator, available once the image has been loaded.
+   */
+  public readonly annotator = computed(() =>
+    this._annotatorDirective()?.annotator(),
+  );
+
+  /**
+   * The inner annotations list.
+   */
+  public readonly list = signal<
+    ImgAnnotationList<ChgcAnnotationPayload> | undefined
+  >(undefined);
+
+  /**
+   * The effective gallery filter entries.
+   */
+  public readonly safeFilterEntries = computed<GalleryFilterEntry[]>(() => {
+    const entries = this.filterEntries();
+    return entries?.length
+      ? entries
+      : [...DEFAULT_CHGC_GALLERY_FILTER_ENTRIES];
+  });
+
+  constructor() {
+    inject(DestroyRef).onDestroy(() => (this._destroyed = true));
+
+    // a new image is going to be loaded
     effect(() => {
-      console.log('Annotator: image changed:', this.image());
-      this.loading = true;
-      if (this.image()) {
-        setTimeout(() => {
-          this.tabIndex = 0;
-        });
-      }
+      const uri = this.imageUri();
+      untracked(() => {
+        this.imageLoading.set(!!uri);
+        this.error.set(undefined);
+      });
     });
 
-    // when annotations change, update the inner list
+    // push the annotations into the list whenever they change
     effect(() => {
-      if (this._pendingAnnotations) {
+      const list = this.list();
+      const annotations = this.annotations();
+      if (!list) {
         return;
       }
-      this.setAnnotations(this.annotations());
+      untracked(() => {
+        if (!sameChgcAnnotations(list.annotations(), annotations)) {
+          list.setAnnotations(annotations);
+        }
+      });
+    });
+
+    // update the annotations whenever the user changes them in the list
+    effect(() => {
+      const list = this.list();
+      if (!list) {
+        return;
+      }
+      const current = list.annotations();
+      untracked(() => {
+        if (!sameChgcAnnotations(current, this.annotations())) {
+          this.annotations.set(current);
+        }
+      });
     });
   }
 
-  private setAnnotations(
-    annotations: ListAnnotation<ChgcAnnotationPayload>[]
-  ): void {
-    if (!this.loading && this._list) {
-      console.log('Annotator: setting annotations:', annotations);
-      this._list.setAnnotations(annotations);
-    } else if (annotations?.length) {
-      console.log('Annotator: setting pending annotations:', annotations);
-      this._pendingAnnotations = annotations;
+  public onListInit(list: ImgAnnotationList<ChgcAnnotationPayload>): void {
+    // fill the new list before exposing it, so that its initial (empty)
+    // state is never mistaken for a user's change
+    const annotations = this.annotations();
+    if (!sameChgcAnnotations(list.annotations(), annotations)) {
+      list.setAnnotations(annotations);
     }
-  }
-
-  public ngOnInit(): void {
-    if (!this.image()) {
-      console.log('Annotator: no image, tabIndex=1');
-      this.tabIndex = 1;
-    }
-  }
-
-  public ngOnDestroy(): void {
-    this._sub?.unsubscribe();
+    this.list.set(list);
   }
 
   public onImageLoad(): void {
-    console.log('Annotator: image loaded for model', this.image());
-    this.loading = false;
-    this.tabIndex = 0;
+    this.imageLoading.set(false);
+  }
 
-    if (this._pendingAnnotations?.length && this._list) {
-      setTimeout(() => {
-        console.log(
-          'Annotator: consuming pending annotations:',
-          this._pendingAnnotations
-        );
-        this._list!.setAnnotations(this._pendingAnnotations!);
-        this._pendingAnnotations = undefined;
-      });
+  public onImageError(): void {
+    this.imageLoading.set(false);
+    this.error.set(`Unable to load image ${this.imageUri()}`);
+  }
+
+  public showGallery(): void {
+    this.tabIndex.set(GALLERY_TAB);
+  }
+
+  public showAnnotator(): void {
+    this.tabIndex.set(ANNOTATOR_TAB);
+  }
+
+  /**
+   * Handle the image picked from the gallery. The image is retrieved from
+   * the gallery service, at the size defined by its options. If it is a
+   * different image and there are annotations, the user is asked to
+   * confirm, as annotations are removed when replacing the image.
+   *
+   * @param picked The image picked from the gallery.
+   */
+  public async onImagePick(picked: GalleryImage): Promise<void> {
+    if (this.disabled()) {
+      return;
     }
-  }
+    const pickId = ++this._pickId;
+    this.picking.set(true);
+    this.error.set(undefined);
 
-  public onToolChange(tool: string): void {
-    this.tool = tool;
-  }
-
-  public onAnnotatorInit(annotator: any) {
-    setTimeout(() => {
-      this.annotator = annotator;
-      this.changeDetector.detectChanges();
-    });
-  }
-
-  public onListInit(list: ImgAnnotationList<ChgcAnnotationPayload>) {
-    console.log('Annotator: list init', list);
-    this._list = list;
-
-    // consume pending annotations if any
-    if (this._pendingAnnotations?.length) {
-      console.log('Annotator: consuming pending annotations:', this._pendingAnnotations);
-      this._list.setAnnotations(this._pendingAnnotations);
-      this._pendingAnnotations = undefined;
-    }
-
-    // emit annotations whenever they change
-    this._sub?.unsubscribe();
-    this._sub = this._list.annotations$.subscribe((annotations) => {
-      if (this.image() && !this.loading) {
-        if (this._list) {
-          console.log('Annotator: list annotations changed:', annotations);
-          this.imageAnnotations = this._list
-            .getAnnotations()
-            .map((a) => a.value);
-        }
-        this.annotations.set(annotations);
+    let image: GalleryImage | null;
+    try {
+      image = await firstValueFrom(
+        this._galleryService.getImage(picked.id, this._options.get()),
+        { defaultValue: null },
+      );
+    } catch (error) {
+      console.error('Error retrieving image ' + picked.id, error);
+      image = null;
+    } finally {
+      if (pickId === this._pickId) {
+        this.picking.set(false);
       }
-    });
-  }
+    }
+    // ignore stale results
+    if (pickId !== this._pickId || this._destroyed) {
+      return;
+    }
+    if (!image) {
+      this.error.set(`Unable to retrieve image ${picked.title || picked.id}`);
+      return;
+    }
 
-  public onSelectionChanged(annotation?: ImageAnnotation) {
-    this._list?.onSelectionChange(annotation);
-  }
+    // same image: just go back to the annotator
+    if (isSameGalleryImage(image, this.image())) {
+      this.showAnnotator();
+      return;
+    }
 
-  public editAnnotation(annotation: ImageAnnotation): void {
-    this._list?.editAnnotation(annotation);
-  }
-
-  public selectAnnotation(index: number): void {
-    this._list?.selectAnnotationAt(index);
-  }
-
-  public removeAnnotation(index: number): void {
-    this._list?.removeAnnotationAt(index);
-  }
-
-  public onCreateAnnotation(annotation: ImageAnnotation) {
-    this._list?.onCreateAnnotation(annotation);
-  }
-
-  public onClickAnnotation(event: {
-    annotation: ImageAnnotation;
-    originalEvent: PointerEvent;
-  }) {
-    console.log('Annotator: clicked annotation:', event);
-    // this._list?.editAnnotation(event.annotation);
-  }
-
-  public onDeleteAnnotation(annotation: ImageAnnotation) {
-    this._list?.onDeleteAnnotation(annotation);
-  }
-
-  public clearAnnotations(): void {
-    this._list?.clearAnnotations();
-  }
-
-  public onImagePick(image: GalleryImage): void {
-    this._galleryService
-      .getImage(image.id, this._options.get())
-      .pipe(take(1))
-      .subscribe((image) => {
-        console.log('Annotator: image picked:', image);
-        this.image.set(image!);
-      });
-    this.tabIndex = 1;
+    // a different image: annotations would no longer match it
+    if (this.annotations().length) {
+      const confirmed = await firstValueFrom(
+        this._dialogService.confirm(
+          'Change Image',
+          `Changing the image removes its ${this.annotations().length} ` +
+            'annotation(s). Continue?',
+        ),
+        { defaultValue: false },
+      );
+      if (!confirmed || pickId !== this._pickId || this._destroyed) {
+        return;
+      }
+      this.annotations.set([]);
+    }
+    this.image.set(image);
+    this.showAnnotator();
   }
 }

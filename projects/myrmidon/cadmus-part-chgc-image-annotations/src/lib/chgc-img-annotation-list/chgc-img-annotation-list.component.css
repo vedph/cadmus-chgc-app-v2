@@ -1,27 +1,97 @@
-table {
-  width: 100%;
-  border-collapse: collapse;
+:host {
+  display: block;
 }
-.muted {
-  color: silver;
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
-tr:nth-child(odd) {
-  background-color: #fafafa;
+.item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: var(--mat-sys-corner-medium, 12px);
+  background-color: var(--mat-sys-surface-container-low);
+  padding-right: 4px;
+  transition: background-color 120ms ease;
 }
-th {
-  font-weight: normal;
-  color: silver;
+.item.selected {
+  border-color: var(--mat-sys-primary);
+  background-color: var(--mat-sys-secondary-container);
+  color: var(--mat-sys-on-secondary-container);
+}
+.summary {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
   text-align: left;
+  cursor: pointer;
+  border-radius: inherit;
 }
-tr.selected {
-  border: 1px solid orange;
+.summary:focus-visible {
+  outline: 2px solid var(--mat-sys-primary);
+  outline-offset: -2px;
 }
-td.fit-width {
-  width: 1px;
+.index {
+  flex: 0 0 auto;
+  min-width: 24px;
+  height: 24px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font: var(--mat-sys-label-small);
+  background-color: var(--mat-sys-surface-container-highest);
+  color: var(--mat-sys-on-surface-variant);
+}
+.text {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.eid {
+  font: var(--mat-sys-body-large);
+  overflow-wrap: anywhere;
+}
+.label {
+  font: var(--mat-sys-body-medium);
+  color: var(--mat-sys-on-surface-variant);
+}
+.note {
+  font: var(--mat-sys-body-small);
+  color: var(--mat-sys-on-surface-variant);
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-@media only screen and (max-width: 959px) {
-  .noif-lt-md {
+.shape {
+  flex: 0 0 auto;
+  font: var(--mat-sys-label-small);
+  color: var(--mat-sys-on-surface-variant);
+}
+.actions {
+  flex: 0 0 auto;
+  display: flex;
+}
+.empty {
+  color: var(--mat-sys-on-surface-variant);
+  font-style: italic;
+  margin: 8px 0;
+}
+@media (max-width: 599px) {
+  .shape {
     display: none;
   }
 }

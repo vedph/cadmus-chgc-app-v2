@@ -1,0 +1,16 @@
+allowBuilds:
+  '@parcel/watcher': true
+  esbuild: true
+  lmdb: true
+  msgpackr-extract: true
+minimumReleaseAgeExclude:
+  - '@myrmidon/cadmus-img-gallery@10.0.0'
+  - '@myrmidon/cadmus-img-gallery-iiif@10.0.0'
+  - '@myrmidon/ngx-annotorious@2.0.0'
+  - '@testing-library/user-event@14.6.12'
+
+# zone.js is an optional peer of @angular/core, not used in this zoneless
+# workspace: do not hoist it, or the Vitest runner would try loading it
+hoistPattern:
+  - '*'
+  - '!zone.js'

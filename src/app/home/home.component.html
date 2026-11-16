@@ -1,11 +1,6 @@
 <div>
   <div class="banner">
-    <img
-      alt="logo"
-      class="banner-img"
-      srcset="./img/banner-1024.jpg 1024w, ./img/banner-512.jpg 512w"
-      sizes="(max-width: 600px) 512px, 1024px"
-    />
+    <img alt="banner" class="banner-img" src="./img/banner-1024.jpg" />
   </div>
   <article>
     <h2>Cadmus CHGC</h2>
@@ -13,9 +8,11 @@
       Welcome to the CHGC project data editor. Access to this site is restricted
       to authorised users.
     </p>
-    <p *ngIf="!logged" class="emph">
-      Please <a href="/login">login</a> to start.
-    </p>
+    @if (!logged()) {
+      <p class="emph">
+        Please <a routerLink="/login" [queryParams]="{ returnUrl: 'items' }">login</a> to start.
+      </p>
+    }
     <h3>Composable Data and Composable Editor</h3>
     <p>
       The purpose of this editor is just annotating images; so its data

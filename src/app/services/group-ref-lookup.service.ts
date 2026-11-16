@@ -1,17 +1,22 @@
-import { Injectable } from '@angular/core';
-import { ItemService } from '@myrmidon/cadmus-api';
+import { inject, Injectable } from '@angular/core';
 import { Observable, map } from 'rxjs';
 
+import { ItemService } from '@myrmidon/cadmus-api';
 import {
   RefLookupFilter,
   RefLookupService,
 } from '@myrmidon/cadmus-refs-lookup';
 
+/**
+ * Lookup service for item group IDs.
+ */
 @Injectable({
   providedIn: 'root',
 })
 export class GroupRefLookupService implements RefLookupService {
-  constructor(private _itemService: ItemService) {}
+  private readonly _itemService = inject(ItemService);
+
+  public readonly id = 'chgc-groups';
 
   public lookup(filter: RefLookupFilter, options?: any): Observable<string[]> {
     return this._itemService
@@ -19,7 +24,13 @@ export class GroupRefLookupService implements RefLookupService {
       .pipe(map((page) => page.items));
   }
 
-  public getName(item: string): string {
-    return item;
+  public getById(id: string): Observable<string | undefined> {
+    return this._itemService
+      .getItemGroupIds(1, 1, id)
+      .pipe(map((page) => page.items.find((i) => i === id)));
+  }
+
+  public getName(item: string | undefined): string {
+    return item || '';
   }
 }
