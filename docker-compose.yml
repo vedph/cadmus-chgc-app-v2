@@ -8,7 +8,7 @@ services:
       - MONGO_LOG_DIR=/dev/null
     command: mongod --logpath=/dev/null # --quiet
     ports:
-      - 27017:27017
+      - 127.0.0.1:27017:27017
     networks:
       - cadmus-chgc-network
 
@@ -21,7 +21,7 @@ services:
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=postgres
     ports:
-      - 5432:5432
+      - 127.0.0.1:5432:5432
     networks:
       - cadmus-chgc-network
 
@@ -30,7 +30,7 @@ services:
     image: vedph2020/cadmus-chgc-api:6.0.0
     container_name: cadmus-chgc-api
     ports:
-      - 5078:8080
+      - 127.0.0.1:5078:8080
     depends_on:
       - cadmus-chgc-mongo
       - cadmus-chgc-pgsql
@@ -53,7 +53,7 @@ services:
     image: vedph2020/cadmus-chgc-app:5.0.0
     container_name: cadmus-chgc-app
     ports:
-      - 4200:80
+      - 127.0.0.1:4200:80
     depends_on:
       - cadmus-chgc-api
     networks:
