@@ -1,4 +1,13 @@
-import { ImageAnnotation } from '@annotorious/annotorious';
+import {
+  ImageAnnotation,
+  parseFragmentSelector,
+  parseSVGSelector,
+  RectangleGeometry,
+  serializeFragmentSelector,
+  serializeSVGSelector,
+  Shape,
+  ShapeType,
+} from '@annotorious/annotorious';
 
 import { GalleryImage, ListAnnotation } from '@myrmidon/ngx-annotorious';
 import { Part } from '@myrmidon/cadmus-core';
@@ -78,6 +87,77 @@ export function buildChgcAnnotationBody(
 }
 
 /**
+ * Convert an SVG circle into the corresponding SVG ellipse, as circles are not
+ * an Annotorious shape: they were produced only by its legacy version.
+ */
+function circleToEllipse(svg: string): string {
+  const circle = new DOMParser()
+    .parseFromString(svg, 'image/svg+xml')
+    .querySelector('circle');
+  const r = circle?.getAttribute('r');
+  return (
+    `<svg><ellipse cx="${circle?.getAttribute('cx')}" ` +
+    `cy="${circle?.getAttribute('cy')}" rx="${r}" ry="${r}" /></svg>`
+  );
+}
+
+/**
+ * Parse the selector of a CHGC annotation into an Annotorious shape. Besides
+ * the current format (see `serializeChgcSelector`), this also accepts SVG
+ * circles and JSON-serialized shapes, which are found in existing data.
+ *
+ * @param selector The selector.
+ * @returns The shape, or undefined if the selector is invalid.
+ */
+export function parseChgcSelector(selector: string): Shape | undefined {
+  const value = selector?.trim() || '';
+  let shape: Shape | undefined;
+  try {
+    if (value.startsWith('{')) {
+      shape = JSON.parse(value) as Shape;
+    } else if (value.startsWith('xywh=')) {
+      shape = parseFragmentSelector(value);
+    } else if (value.startsWith('<')) {
+      shape = parseSVGSelector<Shape>(
+        value.includes('<circle') ? circleToEllipse(value) : value,
+      );
+    }
+  } catch {
+    return undefined;
+  }
+  // an SVG shape with missing attributes gets NaN coordinates
+  return shape?.type &&
+    shape.geometry &&
+    (!shape.geometry.bounds || Number.isFinite(shape.geometry.bounds.minX))
+    ? shape
+    : undefined;
+}
+
+/**
+ * Serialize an Annotorious shape into the selector of a CHGC annotation. This
+ * is the format expected by the TEI exporter: a W3C media fragment
+ * (`xywh=pixel:x,y,w,h`) for rectangles without rotation, and an SVG fragment
+ * (`<svg>...</svg>`) for any other shape.
+ *
+ * @param shape The shape.
+ * @returns The selector.
+ */
+export function serializeChgcSelector(shape?: Shape | null): string {
+  if (
+    shape?.type === ShapeType.RECTANGLE &&
+    !(shape.geometry as RectangleGeometry).rot
+  ) {
+    return serializeFragmentSelector(shape.geometry as RectangleGeometry).value;
+  }
+  try {
+    return serializeSVGSelector(shape as Shape).value;
+  } catch {
+    // never lose data, even when the shape is unknown
+    return JSON.stringify(shape ?? null);
+  }
+}
+
+/**
  * Convert a CHGC image annotation into a list annotation for the annotator.
  *
  * @param source The CHGC annotation.
@@ -86,12 +166,6 @@ export function buildChgcAnnotationBody(
 export function chgcToListAnnotation(
   source: ChgcImageAnnotation,
 ): ChgcListAnnotation {
-  let selector: unknown;
-  try {
-    selector = JSON.parse(source.selector);
-  } catch {
-    selector = undefined;
-  }
   return {
     id: source.id,
     image: { ...(source.target || EMPTY_IMAGE) },
@@ -99,7 +173,7 @@ export function chgcToListAnnotation(
       id: source.id,
       target: {
         annotation: source.id,
-        selector,
+        selector: parseChgcSelector(source.selector),
       },
       // we need a body for Annotorious to work
       bodies: [buildChgcAnnotationBody(source.id, source.eid)],
@@ -139,7 +213,7 @@ export function listToChgcAnnotation(
   const annotation: ChgcImageAnnotation = {
     id: source.id,
     target,
-    selector: JSON.stringify(source.value?.target?.selector ?? null),
+    selector: serializeChgcSelector(source.value?.target?.selector),
     eid: source.payload?.eid?.trim() || '',
   };
   const label = source.payload?.label?.trim();

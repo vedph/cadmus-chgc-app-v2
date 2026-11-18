@@ -1,5 +1,15 @@
 # History
 
+## 5.0.1
+
+- 2026-11-18: fixes to `@myrmidon/cadmus-part-chgc-image-annotations` 3.1.0 (new peer dependency: `@annotorious/plugin-tools`):
+
+- 🐛 annotator: restored round zones, missing since the move to Annotorious V3. A new ellipse tool comes from `@annotorious/plugin-tools`; hold Shift while drawing to get a circle. The plugin stylesheet is added to `angular.json`.
+- 🐛 TEI export failed with `Invalid selector`: since the move to Annotorious V3, selectors were saved as JSON-serialized shapes, while the exporter expects `xywh=pixel:...` or `<svg>...`. Selectors are now saved in the exporter's format.
+- 🐛 annotations saved by the first version of the app (`xywh=pixel:...`, `<svg>...`, including circles and freehand paths) could not be loaded in the editor, as selectors were always parsed as JSON. All the selector formats are now read, including the JSON one.
+
+⚠️ Parts already saved with JSON selectors keep them until they are changed: exporting them requires `Cadmus.Chgc.Export` 5.0.1 in the API, which is also required to export rotated rectangles, and to keep the whole annotation GUID in TEI.
+
 ## 5.0.0
 
 - 2026-11-16: ⚠️ migrated to the Cadmus v20 frontend and to [ngx-annotorious](https://github.com/vedph/ngx-annotorious) 2 (`@myrmidon/ngx-annotorious` 2, `@myrmidon/cadmus-img-gallery` 10, `@myrmidon/cadmus-img-gallery-iiif` 10). The app is now **zoneless**; all its components are `OnPush`, with their state in signals and their forms in Angular signal forms. Library versions: `@myrmidon/cadmus-part-chgc-image-annotations` 3.0.0, `@myrmidon/cadmus-part-chgc-pg` 3.0.0.

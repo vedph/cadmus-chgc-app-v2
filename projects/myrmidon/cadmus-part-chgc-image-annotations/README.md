@@ -19,7 +19,7 @@ The CHGC annotations part (`ChgcImageAnnotationsPart`, type ID `it.vedph.chgc.im
     - `uri` (`string`)
     - `title` (`string`)
     - `description` (`string?`)
-  - `selector` (`string`): the Annotorious selector (JSON).
+  - `selector` (`string`): the shape, in the format expected by the TEI exporter (see below).
   - `notes` (`string[]?`)
   - `tags` (`string[]?`)
 - payload-specific data:
@@ -29,10 +29,13 @@ The CHGC annotations part (`ChgcImageAnnotationsPart`, type ID `it.vedph.chgc.im
 
 Empty optional strings are saved as missing values.
 
+The selector is saved as a W3C media fragment for rectangles (`xywh=pixel:x,y,w,h`), and as an SVG fragment for any other shape: e.g. `<svg><ellipse cx="100" cy="50" rx="10" ry="5" /></svg>`, `<svg><polygon points="10,20 30,40 50,5" /></svg>`, or `<svg><rect ... transform="rotate(...)" /></svg>` for a rotated rectangle. When loading, SVG circles and JSON-serialized Annotorious shapes found in existing data are accepted too; they are saved in the format above when the part is changed.
+
 In the editor, annotations are handled as `ListAnnotation<ChgcAnnotationPayload>` objects (aliased as `ChgcListAnnotation`), pairing the Annotorious annotation with its payload. These functions convert between the two forms:
 
 - `chgcToListAnnotation(annotation)`: from the part's model to the editor's model.
 - `listToChgcAnnotation(annotation, fallbackImage?)`: from the editor's model to the part's model.
+- `parseChgcSelector(selector)` and `serializeChgcSelector(shape)`: convert between a selector and an Annotorious shape.
 - `sameChgcAnnotations(a, b)`: true if two sets of list annotations are the same CHGC annotations, ignoring any data added by Annotorious.
 
 ## Components
@@ -42,7 +45,7 @@ In the editor, annotations are handled as `ListAnnotation<ChgcAnnotationPayload>
   - 🔥 `cancel`.
 - `ChgcImageAnnotationDialogComponent`: dialog wrapper for `ChgcImageAnnotationComponent`. It receives the annotation as its dialog data, and closes with the edited annotation, or with nothing when the user discards the changes.
 - `ChgcImgAnnotationListComponent` (`cadmus-chgc-img-annotation-list`): the list of CHGC image annotations, derived from `ImgAnnotationListComponent` (see [ngx-annotorious](https://github.com/vedph/ngx-annotorious)). Users can select, edit and remove annotations. Besides the base inputs, it has `disabled`.
-- `ChgcGalleryImgAnnotatorComponent` (`cadmus-chgc-gallery-img-annotator`): the core annotator component, orchestrating an image gallery (`GalleryListComponent`), an image annotator (an image with the `imgAnnotator` directive) and the list of annotations (`ChgcImgAnnotationListComponent`).
+- `ChgcGalleryImgAnnotatorComponent` (`cadmus-chgc-gallery-img-annotator`): the core annotator component, orchestrating an image gallery (`GalleryListComponent`), an image annotator (an image with the `imgAnnotator` directive) and the list of annotations (`ChgcImgAnnotationListComponent`). Its drawing tools (`CHGC_ANNOTATOR_TOOLS`) are rectangle, polygon and ellipse; hold Shift while drawing an ellipse to get a circle.
   - ▶️ model `image` (`GalleryImage?`): the image to annotate. When the user picks an image from the gallery, it is retrieved from the gallery service at the size defined by the gallery options. When picking a different image while there are annotations, the user is asked to confirm, as these annotations are removed.
   - ▶️ model `annotations` (`ChgcListAnnotation[]`): the annotations. They are emitted whenever the user draws, moves, resizes, edits or removes an annotation.
   - ▶️ `filterEntries` (`GalleryFilterEntry[]?`): the gallery filter entries. When not set, the gallery can be filtered by title only (`DEFAULT_CHGC_GALLERY_FILTER_ENTRIES`).
@@ -55,5 +58,5 @@ In the editor, annotations are handled as `ListAnnotation<ChgcAnnotationPayload>
 The host app must provide:
 
 - the gallery service and options (`IMAGE_GALLERY_SERVICE_KEY`, `IMAGE_GALLERY_OPTIONS_KEY` from `@myrmidon/cadmus-img-gallery`), e.g. with `SimpleIiifGalleryService` from `@myrmidon/cadmus-img-gallery-iiif`;
-- the Annotorious styles (`node_modules/@annotorious/annotorious/dist/annotorious.css` in `angular.json` `styles`);
+- the Annotorious styles, in `angular.json` `styles`: `node_modules/@annotorious/annotorious/dist/annotorious.css` and, for the additional drawing tools, `node_modules/@annotorious/plugin-tools/dist/annotorious-plugin-tools.css`;
 - optionally, `MAT_DIALOG_DEFAULT_OPTIONS` for the annotation editor dialog.

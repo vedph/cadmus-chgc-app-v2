@@ -38,6 +38,7 @@
             ],
             "styles": [
               "node_modules/@annotorious/annotorious/dist/annotorious.css",
+              "node_modules/@annotorious/plugin-tools/dist/annotorious-plugin-tools.css",
               "src/styles.scss"
             ],
             "scripts": [],

@@ -14,6 +14,9 @@ import {
 } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 
+import type { ImageAnnotator } from '@annotorious/annotorious';
+import { mountPlugin as mountToolsPlugin } from '@annotorious/plugin-tools';
+
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
@@ -25,6 +28,7 @@ import {
   ImgAnnotationList,
   ImgAnnotatorDirective,
   ImgAnnotatorToolbarComponent,
+  ImgAnnotatorToolbarTool,
 } from '@myrmidon/ngx-annotorious';
 import {
   GalleryFilterEntry,
@@ -49,6 +53,17 @@ import { ChgcImgAnnotationListComponent } from '../chgc-img-annotation-list/chgc
  */
 export const DEFAULT_CHGC_GALLERY_FILTER_ENTRIES: readonly GalleryFilterEntry[] =
   Object.freeze([{ id: 'title', value: 'title' }]);
+
+/**
+ * The drawing tools of the annotator. Besides those built into Annotorious,
+ * the ellipse is provided by `@annotorious/plugin-tools`.
+ */
+export const CHGC_ANNOTATOR_TOOLS: readonly ImgAnnotatorToolbarTool[] =
+  Object.freeze([
+    { id: 'rectangle', icon: 'rectangle', tip: 'Rectangle' },
+    { id: 'polygon', icon: 'polyline', tip: 'Polygon' },
+    { id: 'ellipse', icon: 'circle', tip: 'Ellipse (hold Shift for a circle)' },
+  ]);
 
 const ANNOTATOR_TAB = 0;
 const GALLERY_TAB = 1;
@@ -118,6 +133,11 @@ export class ChgcGalleryImgAnnotatorComponent {
    */
   public readonly annotationToString = (a: ChgcListAnnotation): string =>
     a.payload?.eid || '';
+
+  /**
+   * The drawing tools available to the user.
+   */
+  public readonly tools = CHGC_ANNOTATOR_TOOLS;
 
   /**
    * The current drawing tool.
@@ -225,6 +245,14 @@ export class ChgcGalleryImgAnnotatorComponent {
       list.setAnnotations(annotations);
     }
     this.list.set(list);
+  }
+
+  /**
+   * Add the plugin tools to a new annotator. This happens before the directive
+   * applies the current tool to the annotator.
+   */
+  public onAnnotatorInit(annotator: ImageAnnotator): void {
+    mountToolsPlugin(annotator);
   }
 
   public onImageLoad(): void {

@@ -10,6 +10,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { render, screen } from '@testing-library/angular';
 import { of, throwError } from 'rxjs';
 
+import type { ImageAnnotator } from '@annotorious/annotorious';
+
 import {
   GalleryImage,
   ImgAnnotationList,
@@ -165,6 +167,44 @@ describe('ChgcGalleryImgAnnotatorComponent', () => {
     img.dispatchEvent(new Event('load'));
     expect(component.imageLoading()).toBe(false);
     expect((await gallery(fixture)).selectedId()).toBe('1');
+  });
+
+  it('should offer the ellipse among the drawing tools', async () => {
+    await setup({ image: IMAGE1 });
+    expect(
+      ['Rectangle', 'Polygon', 'Ellipse (hold Shift for a circle)'].map(
+        (name) => !!screen.queryByRole('radio', { name, hidden: true }),
+      ),
+    ).toEqual([true, true, true]);
+  });
+
+  it('should select the ellipse tool from the toolbar', async () => {
+    const { fixture, component } = await setup({ image: IMAGE1 });
+    screen
+      .getByRole('radio', {
+        name: 'Ellipse (hold Shift for a circle)',
+        hidden: true,
+      })
+      .click();
+    await fixture.whenStable();
+    expect(component.tool()).toBe('ellipse');
+  });
+
+  it('should register the plugin tools in a new annotator', async () => {
+    const { component } = await setup();
+    const annotator = {
+      registerDrawingTool: vi.fn(),
+      registerShapeEditor: vi.fn(),
+    };
+    component.onAnnotatorInit(annotator as unknown as ImageAnnotator);
+    expect(annotator.registerDrawingTool).toHaveBeenCalledWith(
+      'ellipse',
+      expect.anything(),
+    );
+    expect(annotator.registerShapeEditor).toHaveBeenCalledWith(
+      'ELLIPSE',
+      expect.anything(),
+    );
   });
 
   it('should show an error when the image cannot be loaded', async () => {

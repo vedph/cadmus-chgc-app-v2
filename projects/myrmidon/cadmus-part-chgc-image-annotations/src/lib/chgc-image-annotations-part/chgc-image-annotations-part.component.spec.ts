@@ -51,8 +51,18 @@ function chgc(id: string, eid: string, x = 10): ChgcImageAnnotation {
   return {
     id,
     target: { ...IMAGE },
-    selector: JSON.stringify(createTestAnnotation(id, undefined, x).target.selector),
+    selector: `xywh=pixel:${x},10,10,10`,
     eid,
+  };
+}
+
+// an annotation as saved by previous versions of the editor
+function legacyChgc(id: string, eid: string, x = 10): ChgcImageAnnotation {
+  return {
+    ...chgc(id, eid, x),
+    selector: JSON.stringify(
+      createTestAnnotation(id, undefined, x).target.selector,
+    ),
   };
 }
 
@@ -205,6 +215,43 @@ describe('ChgcImageAnnotationsPartComponent', () => {
       expect(Object.getOwnPropertySymbols(a)).toEqual([]);
     }
     expect(component.isDirty()).toBe(false);
+  });
+
+  it('should load annotations with legacy selectors, pristine', async () => {
+    const { component, annotator } = await setup(
+      makeData([legacyChgc('a', 'alpha')]),
+    );
+    expect(annotator.annotations()).toEqual([
+      chgcToListAnnotation(legacyChgc('a', 'alpha')),
+    ]);
+    expect(annotator.annotations()[0].value.target.selector?.type).toBe(
+      'RECTANGLE',
+    );
+    expect(component.isDirty()).toBe(false);
+  });
+
+  it('should save legacy selectors in the format of the exporter', async () => {
+    const { component, annotator, fixture } = await setup(
+      makeData([legacyChgc('a', 'alpha')]),
+    );
+    annotator.annotations.set([
+      ...annotator.annotations(),
+      chgcToListAnnotation(chgc('b', 'beta', 50)),
+    ]);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const saved = vi.fn();
+    component.data.subscribe(saved);
+    await userEvent.setup().click(screen.getByRole('button', { name: /save/i }));
+    await fixture.whenStable();
+
+    const part = (saved.mock.calls[0][0] as EditedObject<ChgcImageAnnotationsPart>)
+      .value!;
+    expect(part.annotations.map((a) => a.selector)).toEqual([
+      'xywh=pixel:10,10,10,10',
+      'xywh=pixel:50,10,10,10',
+    ]);
   });
 
   it('should seed the annotation thesauri with the IDs thesaurus', async () => {

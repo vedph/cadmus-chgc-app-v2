@@ -1,3 +1,5 @@
+import { Shape, ShapeType } from '@annotorious/annotorious';
+
 import { GalleryImage } from '@myrmidon/ngx-annotorious';
 
 import {
@@ -7,7 +9,9 @@ import {
   chgcToListAnnotation,
   isSameGalleryImage,
   listToChgcAnnotation,
+  parseChgcSelector,
   sameChgcAnnotations,
+  serializeChgcSelector,
 } from './chgc-image-annotations';
 import { createTestAnnotation } from './testing/fake-annotator';
 
@@ -17,12 +21,14 @@ const IMAGE: GalleryImage = {
   title: 'page 1',
 };
 
+// the selector corresponding to createTestAnnotation
+const RECT_SELECTOR = 'xywh=pixel:10,10,10,10';
+
 function chgc(id = 'a1', eid = 'alpha'): ChgcImageAnnotation {
-  const value = createTestAnnotation(id);
   return {
     id,
     target: { ...IMAGE },
-    selector: JSON.stringify(value.target.selector),
+    selector: RECT_SELECTOR,
     eid,
     label: 'Alpha',
     note: 'a note',
@@ -37,6 +43,206 @@ function listItem(id = 'a1', eid = 'alpha'): ChgcListAnnotation {
     payload: { eid, label: 'Alpha', note: 'a note' },
   };
 }
+
+describe('parseChgcSelector', () => {
+  it('should parse a rectangle', () => {
+    expect(parseChgcSelector('xywh=pixel:173,723,334,656.5')).toEqual({
+      type: ShapeType.RECTANGLE,
+      geometry: {
+        x: 173,
+        y: 723,
+        w: 334,
+        h: 656.5,
+        rot: 0,
+        bounds: { minX: 173, minY: 723, maxX: 507, maxY: 1379.5 },
+      },
+    });
+  });
+
+  it('should parse a polygon', () => {
+    const shape = parseChgcSelector(
+      '<svg><polygon points="10,20 30,40 50,5"></polygon></svg>',
+    );
+    expect(shape?.type).toBe(ShapeType.POLYGON);
+    expect((shape?.geometry as any).points).toEqual([
+      [10, 20],
+      [30, 40],
+      [50, 5],
+    ]);
+    expect(shape?.geometry.bounds).toEqual({
+      minX: 10,
+      minY: 5,
+      maxX: 50,
+      maxY: 40,
+    });
+  });
+
+  it('should parse an ellipse', () => {
+    const shape = parseChgcSelector(
+      '<svg><ellipse cx="115.5" cy="506" rx="37.5" ry="72"></ellipse></svg>',
+    );
+    expect(shape?.type).toBe(ShapeType.ELLIPSE);
+    expect(shape?.geometry).toMatchObject({
+      cx: 115.5,
+      cy: 506,
+      rx: 37.5,
+      ry: 72,
+      bounds: { minX: 78, minY: 434, maxX: 153, maxY: 578 },
+    });
+  });
+
+  it('should parse a legacy circle as an ellipse', () => {
+    const shape = parseChgcSelector(
+      '<svg><circle cx="100" cy="50" r="10"></circle></svg>',
+    );
+    expect(shape?.type).toBe(ShapeType.ELLIPSE);
+    expect(shape?.geometry).toMatchObject({ cx: 100, cy: 50, rx: 10, ry: 10 });
+  });
+
+  it('should parse a legacy freehand path', () => {
+    const shape = parseChgcSelector(
+      '<svg><path d="M381 44 L382 46 L384 49"></path></svg>',
+    );
+    expect(shape?.type).toBe(ShapeType.POLYLINE);
+    expect(shape?.geometry.bounds).toEqual({
+      minX: 381,
+      minY: 44,
+      maxX: 384,
+      maxY: 49,
+    });
+  });
+
+  it('should parse a rotated rectangle', () => {
+    const shape = parseChgcSelector(
+      '<svg><rect x="10" y="5" width="20" height="10" ' +
+        'transform="rotate(90 20 10)" /></svg>',
+    );
+    expect(shape?.type).toBe(ShapeType.RECTANGLE);
+    expect((shape?.geometry as any).rot).toBeCloseTo(Math.PI / 2);
+  });
+
+  it('should parse a JSON-serialized shape', () => {
+    const json = {
+      type: 'RECTANGLE',
+      geometry: {
+        bounds: { minX: 173, minY: 723, maxX: 507, maxY: 1379 },
+        rot: 0,
+        x: 173,
+        y: 723,
+        w: 334,
+        h: 656,
+      },
+    };
+    expect(parseChgcSelector(JSON.stringify(json))).toEqual(json);
+  });
+
+  it.each([
+    '',
+    'nonsense',
+    '{bad',
+    '{}',
+    'null',
+    'xywh=pixel:1,2',
+    '<svg><unknown /></svg>',
+    '<svg><ellipse cx="1" /></svg>',
+    '<svg><circle cx="1" /></svg>',
+  ])('should return undefined for %j', (selector) => {
+    expect(parseChgcSelector(selector)).toBeUndefined();
+  });
+});
+
+describe('serializeChgcSelector', () => {
+  it('should serialize a rectangle as a media fragment', () => {
+    expect(
+      serializeChgcSelector({
+        type: ShapeType.RECTANGLE,
+        geometry: {
+          bounds: { minX: 173, minY: 723, maxX: 507, maxY: 1379 },
+          rot: 0,
+          x: 173,
+          y: 723,
+          w: 334,
+          h: 656,
+        },
+      } as Shape),
+    ).toBe('xywh=pixel:173,723,334,656');
+  });
+
+  it('should serialize an ellipse as the SVG expected by the exporter', () => {
+    const selector = serializeChgcSelector({
+      type: ShapeType.ELLIPSE,
+      geometry: {
+        cx: 100,
+        cy: 50,
+        rx: 10,
+        ry: 5,
+        bounds: { minX: 90, minY: 45, maxX: 110, maxY: 55 },
+      },
+    } as Shape);
+    expect(selector).toBe('<svg><ellipse cx="100" cy="50" rx="10" ry="5" /></svg>');
+  });
+
+  it('should serialize a polygon as the SVG expected by the exporter', () => {
+    const selector = serializeChgcSelector({
+      type: ShapeType.POLYGON,
+      geometry: {
+        points: [
+          [10, 20],
+          [30, 40],
+          [50, 5],
+        ],
+        bounds: { minX: 10, minY: 5, maxX: 50, maxY: 40 },
+      },
+    } as Shape);
+    expect(selector).toBe('<svg><polygon points="10,20 30,40 50,5" /></svg>');
+  });
+
+  it('should keep the rotation of a rectangle', () => {
+    const selector = serializeChgcSelector({
+      type: ShapeType.RECTANGLE,
+      geometry: {
+        x: 10,
+        y: 5,
+        w: 20,
+        h: 10,
+        rot: Math.PI / 2,
+        bounds: { minX: 15, minY: 0, maxX: 25, maxY: 20 },
+      },
+    } as Shape);
+    expect(selector).toBe(
+      '<svg><rect x="10" y="5" width="20" height="10" ' +
+        'transform="rotate(90 20 10)" /></svg>',
+    );
+  });
+
+  it('should not lose an unknown shape', () => {
+    const shape = { type: 'OTHER', geometry: { a: 1 } } as unknown as Shape;
+    const selector = serializeChgcSelector(shape);
+    expect(JSON.parse(selector)).toEqual(shape);
+  });
+
+  it('should not throw without a shape', () => {
+    expect(serializeChgcSelector(undefined)).toBe('null');
+  });
+
+  it.each([
+    'xywh=pixel:173.5,723,334,656',
+    '<svg><polygon points="10,20 30.5,40 50,5" /></svg>',
+    '<svg><ellipse cx="100.25" cy="50" rx="10" ry="5" /></svg>',
+    '<svg><rect x="10" y="5" width="20" height="10" transform="rotate(45 20 10)" /></svg>',
+  ])('should round-trip %s', (selector) => {
+    expect(serializeChgcSelector(parseChgcSelector(selector))).toBe(selector);
+  });
+
+  it('should convert a JSON-serialized rectangle', () => {
+    const selector = JSON.stringify(
+      createTestAnnotation('a').target.selector,
+    );
+    expect(serializeChgcSelector(parseChgcSelector(selector))).toBe(
+      RECT_SELECTOR,
+    );
+  });
+});
 
 describe('buildChgcAnnotationBody', () => {
   it('should build a tagging body with an ID derived from the annotation', () => {
@@ -59,7 +265,9 @@ describe('chgcToListAnnotation', () => {
     expect(a.image).toEqual(IMAGE);
     expect(a.value.id).toBe('a1');
     expect(a.value.target.annotation).toBe('a1');
-    expect(a.value.target.selector).toEqual(JSON.parse(source.selector));
+    expect(a.value.target.selector).toEqual(
+      parseChgcSelector(source.selector),
+    );
     expect(a.value.bodies).toEqual([buildChgcAnnotationBody('a1', 'alpha')]);
     expect(a.payload).toEqual({ eid: 'alpha', label: 'Alpha', note: 'a note' });
   });
@@ -95,7 +303,7 @@ describe('listToChgcAnnotation', () => {
     expect(a).toEqual({
       id: 'a1',
       target: IMAGE,
-      selector: JSON.stringify(source.value.target.selector),
+      selector: RECT_SELECTOR,
       eid: 'alpha',
       label: 'Alpha',
       note: 'a note',
@@ -152,6 +360,15 @@ describe('sameChgcAnnotations', () => {
     (b.value.target as any).created = new Date();
     b.value.bodies = [];
     expect(sameChgcAnnotations([a], [b])).toBe(true);
+  });
+
+  it('should find equal the same shape in different selector formats', () => {
+    const current = chgcToListAnnotation(chgc());
+    const legacy = chgcToListAnnotation({
+      ...chgc(),
+      selector: JSON.stringify(createTestAnnotation('a1').target.selector),
+    });
+    expect(sameChgcAnnotations([current], [legacy])).toBe(true);
   });
 
   it('should detect a changed shape', () => {

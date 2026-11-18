@@ -26,7 +26,11 @@
       <section class="image-pane">
         @if (image(); as img) {
           <div class="image-bar">
-            <img-annotator-toolbar [(tool)]="tool" [disabled]="!!disabled()" />
+            <img-annotator-toolbar
+              [tools]="tools"
+              [(tool)]="tool"
+              [disabled]="!!disabled()"
+            />
             <span class="image-title" [title]="img.uri">{{ img.title }}</span>
             <button
               type="button"
@@ -45,6 +49,7 @@
               [alt]="img.title"
               [tool]="$any(tool())"
               [drawingEnabled]="!disabled()"
+              (annotatorInit)="onAnnotatorInit($event)"
               (load)="onImageLoad()"
               (error)="onImageError()"
             />
