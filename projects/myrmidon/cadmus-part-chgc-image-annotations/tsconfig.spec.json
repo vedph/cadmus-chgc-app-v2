@@ -9,8 +9,8 @@
     ]
   },
   "include": [
-    "src/**/*.spec.ts",
-    "src/**/*.d.ts"
+    "**/*.spec.ts",
+    "**/*.d.ts"
   ],
   "angularCompilerOptions": {
     "extendedDiagnostics": {

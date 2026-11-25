@@ -94,20 +94,21 @@
     "@myrmidon/cadmus-part-chgc-image-annotations": {
       "projectType": "library",
       "root": "projects/myrmidon/cadmus-part-chgc-image-annotations",
-      "sourceRoot": "projects/myrmidon/cadmus-part-chgc-image-annotations/src",
+      "sourceRoot": "projects/myrmidon/cadmus-part-chgc-image-annotations",
       "prefix": "cadmus",
       "architect": {
         "build": {
-          "builder": "@angular/build:ng-packagr",
+          "builder": "@angular/build:library",
           "options": {
-            "project": "projects/myrmidon/cadmus-part-chgc-image-annotations/ng-package.json"
+            "tsConfig": "projects/myrmidon/cadmus-part-chgc-image-annotations/tsconfig.lib.json",
+            "outputPath": "dist/myrmidon/cadmus-part-chgc-image-annotations"
           },
           "configurations": {
             "production": {
               "tsConfig": "projects/myrmidon/cadmus-part-chgc-image-annotations/tsconfig.lib.prod.json"
             },
             "development": {
-              "tsConfig": "projects/myrmidon/cadmus-part-chgc-image-annotations/tsconfig.lib.json"
+              "compilationMode": "full"
             }
           },
           "defaultConfiguration": "production"
@@ -123,20 +124,21 @@
     "@myrmidon/cadmus-part-chgc-pg": {
       "projectType": "library",
       "root": "projects/myrmidon/cadmus-part-chgc-pg",
-      "sourceRoot": "projects/myrmidon/cadmus-part-chgc-pg/src",
+      "sourceRoot": "projects/myrmidon/cadmus-part-chgc-pg",
       "prefix": "lib",
       "architect": {
         "build": {
-          "builder": "@angular/build:ng-packagr",
+          "builder": "@angular/build:library",
           "options": {
-            "project": "projects/myrmidon/cadmus-part-chgc-pg/ng-package.json"
+            "tsConfig": "projects/myrmidon/cadmus-part-chgc-pg/tsconfig.lib.json",
+            "outputPath": "dist/myrmidon/cadmus-part-chgc-pg"
           },
           "configurations": {
             "production": {
               "tsConfig": "projects/myrmidon/cadmus-part-chgc-pg/tsconfig.lib.prod.json"
             },
             "development": {
-              "tsConfig": "projects/myrmidon/cadmus-part-chgc-pg/tsconfig.lib.json"
+              "compilationMode": "full"
             }
           },
           "defaultConfiguration": "production"

@@ -1,5 +1,11 @@
 # History
 
+## 5.0.2
+
+- 2026-11-25:
+  - updated packages.
+  - 🆕 opted into help and history.
+
 ## 5.0.1
 
 - 2026-11-18: fixes to `@myrmidon/cadmus-part-chgc-image-annotations` 3.1.0 (new peer dependency: `@annotorious/plugin-tools`):

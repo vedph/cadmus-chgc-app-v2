@@ -24,7 +24,7 @@ Commands (this workspace uses [pnpm](https://pnpm.io)):
 
 1. `pnpm run build:libs`;
 2. update version in `env.js` and then `ng build --configuration=production`;
-3. `docker build . -t vedph2020/cadmus-chgc-app:5.0.1 -t vedph2020/cadmus-chgc-app:latest` (replace with the current version).
+3. `docker build . -t vedph2020/cadmus-chgc-app:5.0.2 -t vedph2020/cadmus-chgc-app:latest --push .` (replace with the current version).
 
 ## IIIF
 
